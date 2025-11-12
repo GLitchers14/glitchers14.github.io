@@ -6,18 +6,14 @@
 <title>GLitchers (ANGLE Review Tracker)</title>
 <style>
   :root{--bg:#0b0f13;--panel:#121822;--border:#1f2a37;--text:#e5eef6;--sub:#92a3b5;--accent:#5eead4;--muted:#74869a}
-  html,body{height:100%}
-  body{
-    margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
-    display:flex;flex-direction:column;min-height:100vh;
-  }
-  #root{display:flex;flex-direction:column;flex:1}
-  .wrap{max-width:1200px;margin:0 auto;padding:16px;flex:1}
-
+  html,body,#root{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px}
   .row{display:flex;align-items:center;gap:8px}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
   .btn{border:1px solid var(--border);border-radius:10px;padding:6px 10px;background:#0f141b;color:var(--text);cursor:pointer}
+  .btn.primary{border-color:transparent;background:linear-gradient(90deg,#0ea5e9,#22c55e);color:#021317}
   input{background:#0f141b;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 8px;outline:none}
   .grid{display:grid;grid-template-columns:1fr 2fr; gap:16px}
   @media (max-width:1100px){.grid{grid-template-columns:1fr}}
@@ -39,9 +35,8 @@
   .bbar{height:10px;background:#14202a;border:1px solid #233645;border-radius:999px;overflow:hidden}
   .bfill{height:100%;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
   .bright{font-variant-numeric:tabular-nums}
-
-  footer{background:var(--panel);border-top:1px solid var(--border);color:var(--muted);padding:10px 16px}
-  footer .inner{max-width:1200px;margin:0 auto}
+  footer{margin:20px auto 10px auto;max-width:1200px;padding:0 16px;color:#8aa0b5}
+  footer p{margin:0;text-align:center;font-size:11px;letter-spacing:0.2px}
 </style>
 </head>
 <body>
@@ -55,10 +50,13 @@
         <input id="repo" class="mono" style="min-width:240px" placeholder="owner/repo" value="google/angle"/>
         <span class="badge">branch</span>
         <input id="branch" class="mono" style="min-width:120px" placeholder="main" value="main"/>
-        <span class="badge">token (optional)</span>
-        <input id="ghtoken" class="mono" style="min-width:260px" placeholder="ghp_xxx… (저장됨)"/>
         <button id="apply" class="btn">Apply</button>
         <span id="shaBadge" class="badge"></span>
+        <span style="flex:1"></span>
+        <!-- Import/Export -->
+        <input id="importFile" type="file" accept="application/json" style="display:none"/>
+        <button id="btnImport" class="btn">Import Reviews (JSON)</button>
+        <button id="btnExport" class="btn">Export Reviews (JSON)</button>
       </div>
     </div>
 
@@ -97,15 +95,20 @@
       </div>
     </div>
   </div>
-
-  <footer><div class="inner"><p>© 2025 tb4nch0r. All rights reserved.</p></div></footer>
 </div>
 
 <script>
 /* ===== constants / storage ===== */
 const GH_VER='2022-11-28';
 const LS_DB='angle-review-tracker/whitelist-tree.v4';
-const LS_TOKEN='angle-review-tracker/gh-token';
+const BUNDLED_IMPORT_TAG='angle-review-tracker/bundled-imported.v1'; // avoid re-import loop per origin
+const BUNDLED_CANDIDATES=[
+  'data/angle-reviews.json',
+  'data/reviews.json',
+  'data/state.json',
+  'data/db.json'
+];
+
 const $=id=>document.getElementById(id);
 const DEFAULT_DB={repo:'google/angle',branch:'main',reviews:{},meta:{version:4,updatedAt:0}};
 
@@ -120,60 +123,44 @@ function clone(o){return JSON.parse(JSON.stringify(o));}
 function loadDB(){ try{const raw=localStorage.getItem(LS_DB); return raw?JSON.parse(raw):clone(DEFAULT_DB);}catch{return clone(DEFAULT_DB)} }
 function saveDB(db){ db.meta=db.meta||{}; db.meta.updatedAt=Date.now(); localStorage.setItem(LS_DB,JSON.stringify(db)); }
 
-/* 리뷰 이력: 로컬 키들만 흡수 (서버 /state 제거) */
-const LEGACY_LS_KEYS=[
-  'angle-review-tracker/db.whitelist.v1',
-  'angle-review-tracker/db.whitelist.v2',
-  'angle-review-tracker/whitelist-tree.v1',
-  'angle-review-tracker/whitelist-tree.v2',
-  'angle-review-tracker/whitelist-tree.v3'
-];
 function mergeReviewsIntoDB(fromObj){
-  if(!fromObj || typeof fromObj!=='object') return;
-  const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};
+  if(!fromObj || typeof fromObj!=='object') return 0;
+  const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};  
   DB.reviews=DB.reviews||{};
+  let added=0;
   for(const k in src){
     const v=src[k]; if(v && v.checked){
       const nk=norm(k);
-      DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
+      if(!DB.reviews[nk] || !DB.reviews[nk].checked){
+        DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
+        added++;
+      }
       const bk=base(nk);
-      DB.reviews[bk]=DB.reviews[bk]||{checked:true,ts:DB.reviews[nk].ts};
+      if(!DB.reviews[bk] || !DB.reviews[bk].checked){
+        DB.reviews[bk]={checked:true,ts:DB.reviews[nk].ts};
+      }
     }
   }
-  saveDB(DB);
-}
-async function importLegacyOnce(){
-  let imported=false;
-  for(const key of LEGACY_LS_KEYS){
-    try{ const raw=localStorage.getItem(key); if(!raw) continue; mergeReviewsIntoDB(JSON.parse(raw)); imported=true; }catch{}
-  }
-  return imported;
+  if(added>0) saveDB(DB);
+  return added;
 }
 
 /* ===== global ===== */
 let DB=loadDB();
 let SHA=null;
-let WL_FILES=[]; // normalized
+let WL_FILES=[];
 let TREE=null;
 
-/* ===== GitHub API (직접 호출) ===== */
-function getToken(){ return localStorage.getItem(LS_TOKEN) || ''; }
-function setToken(t){ if(t) localStorage.setItem(LS_TOKEN,t); else localStorage.removeItem(LS_TOKEN); }
+/* ===== GitHub API (direct) ===== */
 function gh(path){
-  const url = 'https://api.github.com/'+path.replace(/^\/+/, '');
-  const headers = {
-    'Accept':'application/vnd.github+json',
-    'X-GitHub-Api-Version': GH_VER,
-    'User-Agent': 'glitchers-angle-review-tracker'
-  };
-  const tok = getToken().trim();
-  if(tok) headers['Authorization'] = 'Bearer '+tok;
-  return fetch(url,{headers})
-    .then(async r=>{
-      const text=await r.text();
-      if(!r.ok) throw new Error(r.status+' :: '+text);
-      try{ return JSON.parse(text); }catch{ return text; }
-    });
+  const u='https://api.github.com/'+path.replace(/^\/+/,'');
+  return fetch(u,{
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':GH_VER,
+      'User-Agent':'glitchers-angle-review'
+    }
+  }).then(r=>r.ok?r.json():r.text().then(t=>{throw new Error(r.status+'  :: '+t)}));
 }
 async function resolveSHA(owner,repo,branch){
   try{
@@ -194,14 +181,16 @@ const WL_INCLUDE_DIRS=[
 const WL_DENY_SUBDIRS=[
   // translator
   'src/compiler/translator/ir/','src/compiler/translator/msl/','src/compiler/translator/tree_ops/','src/compiler/translator/apple/','src/compiler/translator/tree_util/','src/compiler/translator/wgsl/','src/compiler/translator/capture/',
-  // libANGLE capture & non-scope renderers
-  'src/libANGLE/capture/','src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/',
-  // GL platform layers
+  // libANGLE capture
+  'src/libANGLE/capture/',
+  // renderer excludes
+  'src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/',
+  // GL platform glue 제외
   'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/','src/libANGLE/renderer/gl/egl/android/',
-  // Vulkan 비스코프
+  // Vulkan 플랫폼별 제외
   'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
   'src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
-  // Metal 제외
+  // Metal file_hooking 제외
   'src/libANGLE/renderer/metal/file_hooking/'
 ];
 function inInclude(p){ return WL_INCLUDE_DIRS.some(pre=>p.startsWith(pre)); }
@@ -232,7 +221,7 @@ function buildTree(paths){
   paths.forEach(addPath);
   function fold(n){
     if(n.type==='file'){ n.rev=isReviewed(n.full)?1:0; n.total=1; return; }
-    let t=0,r=0; const kids=[...n.children.values()].sort((a,b)=>(a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
+    let t=0,r=0; const kids=[...n.children.values()].sort((a,b)=> (a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
     n.childrenList=kids; kids.forEach(k=>{fold(k); t+=k.total; r+=k.rev;}); n.total=t; n.rev=r;
   }
   fold(root); return root;
@@ -319,7 +308,7 @@ function renderBackendTable(){
   }
 }
 
-/* ===== counts ==== */
+/* ===== counts & painting ==== */
 function recalcAndPaint(){
   function fold(n){
     if(n.type==='file'){ n.rev=isReviewed(n.full)?1:0; return; }
@@ -356,6 +345,7 @@ function mark(p, checked){
     const b=base(k); DB.reviews[b]=DB.reviews[b]||{checked:true,ts:DB.reviews[k].ts};
   }else{
     delete DB.reviews[k];
+    delete DB.reviews[base(k)];
   }
   saveDB(DB);
   recalcAndPaint();
@@ -366,8 +356,6 @@ function setErr(msg){ $('err').textContent=msg||''; }
 async function loadWhitelistAndRender(){
   setErr('');
   const val=$('repo').value.trim(), br=$('branch').value.trim();
-  const tok=$('ghtoken').value.trim();
-  if(tok){ setToken(tok); } // 저장
   if(!val || !val.includes('/')) throw new Error('repo 형식은 owner/repo');
   if(!br) throw new Error('branch 필요');
 
@@ -377,14 +365,69 @@ async function loadWhitelistAndRender(){
 
   const t=await gh(`repos/${owner}/${repo}/git/trees/${sha}?recursive=1`);
   const all=(t&&t.tree)?t.tree:[];
-  WL_FILES = all
-    .filter(e=>e.type==='blob' && allowedPath(e.path||''))
-    .map(e=>norm(e.path||''))
-    .sort();
+  WL_FILES = all.filter(e=>e.type==='blob' && allowedPath(e.path||'')).map(e=>norm(e.path||'')).sort();
 
   TREE=buildTree(WL_FILES);
   renderTree();
   recalcAndPaint();
+}
+
+/* ===== bundled import (from /data/*.json on this origin) ===== */
+async function fetchJsonIfExists(path){
+  try{
+    const r=await fetch(path,{cache:'no-store'});
+    if(!r.ok) return null;
+    const ct=r.headers.get('content-type')||'';
+    if(!ct.includes('application/json') && !ct.includes('text/plain')) return null;
+    return await r.json();
+  }catch{ return null; }
+}
+async function tryBundledImportOnce(){
+  if(localStorage.getItem(BUNDLED_IMPORT_TAG)) return; // already tried
+  let best=null, bestScore=-1;
+  for(const p of BUNDLED_CANDIDATES){
+    const obj=await fetchJsonIfExists(p);
+    if(!obj) continue;
+    // score by number of reviewed entries
+    const reviews=(obj.reviews && typeof obj.reviews==='object')?obj.reviews:{};
+    const score=Object.keys(reviews).length;
+    if(score>bestScore){ best=obj; bestScore=score; }
+  }
+  if(best){
+    const added=mergeReviewsIntoDB(best);
+    if(added>0) recalcAndPaint();
+  }
+  localStorage.setItem(BUNDLED_IMPORT_TAG,'1');
+}
+
+/* ===== import/export UI ===== */
+function exportReviews(){
+  const payload={
+    repo: DB.repo,
+    branch: DB.branch,
+    reviews: DB.reviews,
+    meta: { exportedAt: new Date().toISOString(), version: 1 }
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='angle-reviews.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+}
+function importReviewsFromFile(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const obj=JSON.parse(reader.result);
+      mergeReviewsIntoDB(obj);
+      recalcAndPaint();
+      alert('Imported reviews: OK');
+    }catch(e){
+      alert('Import failed: '+e);
+    }
+  };
+  reader.readAsText(file);
 }
 
 /* ===== UI wiring ===== */
@@ -397,16 +440,21 @@ $('apply').addEventListener('click', async ()=>{
   }catch(e){ setErr(String(e)); }
 });
 $('onlyU').addEventListener('change', applyOnlyUnchecked);
+$('btnExport').addEventListener('click', exportReviews);
+$('btnImport').addEventListener('click', ()=> $('importFile').click());
+$('importFile').addEventListener('change', (e)=>{ const f=e.target.files[0]; if(f) importReviewsFromFile(f); e.target.value=''; });
 
 /* ===== init ===== */
 (async function init(){
   $('repo').value=DB.repo; $('branch').value=DB.branch;
-  const savedTok = localStorage.getItem(LS_TOKEN)||'';
-  $('ghtoken').value = savedTok;
-  await importLegacyOnce();
   await loadWhitelistAndRender();
+  await tryBundledImportOnce(); // auto-merge from /data on first load per origin
 })();
 </script>
+
+<footer>
+  <p>© 2025 GLitchers14. All right reserved.</p>
+</footer>
 </body>
 </html>
 
