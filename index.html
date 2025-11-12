@@ -3,12 +3,22 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>GLitchers (ANGLE Review Tracker)</title>
+<title>GLitchers14 (ANGLE Review Tracker)</title>
 <style>
   :root{--bg:#0b0f13;--panel:#121822;--border:#1f2a37;--text:#e5eef6;--sub:#92a3b5;--accent:#5eead4;--muted:#74869a}
-  html,body,#root{height:100%}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
-  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+
+  /* ---- 레이아웃: 푸터 하단 고정 ---- */
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
+    display:flex; flex-direction:column; min-height:100vh;
+  }
+  #root{display:flex; flex-direction:column; flex:1}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px; flex:1}
+
   .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px}
   .row{display:flex;align-items:center;gap:8px}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
@@ -34,12 +44,21 @@
   .bbar{height:10px;background:#14202a;border:1px solid #233645;border-radius:999px;overflow:hidden}
   .bfill{height:100%;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
   .bright{font-variant-numeric:tabular-nums}
+
+  /* ---- footer ---- */
+  footer{
+    background:var(--panel);
+    border-top:1px solid var(--border);
+    color:var(--muted);
+    padding:10px 16px;
+  }
+  footer .inner{max-width:1200px;margin:0 auto}
 </style>
 </head>
 <body>
 <div id="root">
   <div class="wrap">
-    <h1>ANGLE Review Tracker — GLitchers</h1>
+    <h1>ANGLE Review Tracker — GLitchers14</h1>
 
     <div class="card" style="margin-bottom:12px">
       <div class="row" style="flex-wrap:wrap;gap:10px">
@@ -87,6 +106,13 @@
       </div>
     </div>
   </div>
+
+  <!-- footer는 #root 안, .wrap 뒤 -->
+  <footer>
+    <div class="inner">
+      <p>© 2025 tb4nch0r. All rights reserved.</p>
+    </div>
+  </footer>
 </div>
 
 <script>
@@ -100,7 +126,7 @@ function norm(p){
   return String(p||'')
     .replace(/^third_party\/angle\//,'')
     .replace(/^angle\//,'')
-    .replace(/^\/+/,'');
+    .replace(/^\/+/, '');
 }
 function base(p){ const i=String(p).lastIndexOf('/'); return i>=0? p.slice(i+1): String(p); }
 function clone(o){return JSON.parse(JSON.stringify(o));}
@@ -173,11 +199,16 @@ const WL_INCLUDE_DIRS=[
   'src/libANGLE/renderer/metal/'
 ];
 const WL_DENY_SUBDIRS=[
+  // translator
   'src/compiler/translator/ir/','src/compiler/translator/msl/','src/compiler/translator/tree_ops/','src/compiler/translator/apple/','src/compiler/translator/tree_util/','src/compiler/translator/wgsl/','src/compiler/translator/capture/',
+  // libANGLE capture & non-scope renderers
   'src/libANGLE/capture/','src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/',
+  // GL platform layers (데스크톱/플랫폼 종속)
   'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/','src/libANGLE/renderer/gl/egl/android/',
+  // Vulkan 비스코프
   'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
   'src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
+  // Metal 제외
   'src/libANGLE/renderer/metal/file_hooking/'
 ];
 function inInclude(p){ return WL_INCLUDE_DIRS.some(pre=>p.startsWith(pre)); }
@@ -315,9 +346,9 @@ function recalcAndPaint(){
 /* ===== review mark ===== */
 function isReviewed(p){
   const k=norm(p);
-  if(DB.reviews && DB.reviews[k] && DB.reviews[k].checked) return true;  
+  if(DB.reviews && DB.reviews[k] && DB.reviews[k].checked) return true;
   const b=base(k);
-  if(DB.reviews && DB.reviews[b] && DB.reviews[b].checked) return true; 
+  if(DB.reviews && DB.reviews[b] && DB.reviews[b].checked) return true;
   if(DB.reviews){
     for(const key in DB.reviews){
       if(key.includes('/') && key.endsWith('/'+b) && DB.reviews[key].checked) return true;
@@ -351,7 +382,10 @@ async function loadWhitelistAndRender(){
 
   const t=await gh(`repos/${owner}/${repo}/git/trees/${sha}?recursive=1`);
   const all=(t&&t.tree)?t.tree:[];
-  WL_FILES = all.filter(e=>e.type==='blob' && allowedPath(e.path||'')).map(e=>norm(e.path||'')).sort();
+  WL_FILES = all
+    .filter(e=>e.type==='blob' && allowedPath(e.path||''))
+    .map(e=>norm(e.path||''))
+    .sort();
 
   TREE=buildTree(WL_FILES);
   renderTree();
@@ -372,8 +406,8 @@ $('onlyU').addEventListener('change', applyOnlyUnchecked);
 /* ===== init ===== */
 (async function init(){
   $('repo').value=DB.repo; $('branch').value=DB.branch;
-  await importLegacyOnce();          
-  await loadWhitelistAndRender(); 
+  await importLegacyOnce();
+  await loadWhitelistAndRender();
 })();
 </script>
 </body>
