@@ -1,0 +1,571 @@
+{
+  "repo": "google/angle",
+  "branch": "main",
+  "reviews": {
+    "src/libANGLE/Error.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:50:07.177Z"
+    },
+    "src/libANGLE/Error.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:50:07.704Z"
+    },
+    "src/libANGLE/Fence.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:30.617Z"
+    },
+    "src/libANGLE/Fence.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:31.347Z"
+    },
+    "src/libANGLE/Image.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:40.131Z"
+    },
+    "src/libANGLE/Image.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:40.808Z"
+    },
+    "src/libANGLE/VaryingPacking.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:49.128Z"
+    },
+    "src/libANGLE/VaryingPacking.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:50.527Z"
+    },
+    "src/libANGLE/VertexArray.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:52.960Z"
+    },
+    "src/libANGLE/VertexArray.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:51:53.872Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Blit11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:22.626Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Blit11.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:23.177Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Context11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:30.266Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Context11.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:30.889Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Image11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:47.529Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Image11.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:48.065Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Renderer11.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:59.154Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:52:59.745Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/TextureStorage11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:53:08.001Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/TextureStorage11.h": {
+      "checked": true,
+      "ts": "2025-11-08T08:53:08.897Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/VertexArray11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T08:53:13.001Z"
+    },
+    "src/libANGLE/Buffer.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:14:58.918Z"
+    },
+    "src/libANGLE/Buffer.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:14:59.829Z"
+    },
+    "src/libANGLE/Caps.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:02.285Z"
+    },
+    "src/libANGLE/Caps.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:02.650Z"
+    },
+    "src/libANGLE/Compiler.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:16.293Z"
+    },
+    "src/libANGLE/Compiler.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:16.845Z"
+    },
+    "src/libANGLE/Context_gles_2_0_autogen.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:21.861Z"
+    },
+    "src/libANGLE/Context_gles_3_0_autogen.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:22.597Z"
+    },
+    "src/libANGLE/Context.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:26.333Z"
+    },
+    "src/libANGLE/Context.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:28.533Z"
+    },
+    "src/compiler/translator/ParseContext.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:42.195Z"
+    },
+    "src/libANGLE/HandleAllocator.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:53.822Z"
+    },
+    "src/libANGLE/HandleAllocator.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:15:54.452Z"
+    },
+    "src/libANGLE/MemoryShaderCache.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:02.556Z"
+    },
+    "src/libANGLE/MemoryShaderCache.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:02.997Z"
+    },
+    "src/libANGLE/Program.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:08.228Z"
+    },
+    "src/libANGLE/Program.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:08.764Z"
+    },
+    "src/libANGLE/ProgramExecutable.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:12.190Z"
+    },
+    "src/libANGLE/ProgramExecutable.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:12.726Z"
+    },
+    "src/libANGLE/ProgramLinkedResources.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:14.652Z"
+    },
+    "src/libANGLE/ProgramLinkedResources.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:16.524Z"
+    },
+    "src/libANGLE/ResourceManager.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:24.045Z"
+    },
+    "src/libANGLE/ResourceManager.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:24.470Z"
+    },
+    "src/libANGLE/ResourceMap.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:30.262Z"
+    },
+    "src/libANGLE/Sampler.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:33.575Z"
+    },
+    "src/libANGLE/Sampler.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:34.101Z"
+    },
+    "src/libANGLE/Shader.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:38.381Z"
+    },
+    "src/libANGLE/Shader.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:38.829Z"
+    },
+    "src/libANGLE/validationES.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:16:59.668Z"
+    },
+    "src/libANGLE/validationES.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:00.085Z"
+    },
+    "src/libANGLE/validationES1_autogen.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:01.053Z"
+    },
+    "src/libANGLE/validationES1.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:03.798Z"
+    },
+    "src/libANGLE/validationES1.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:04.404Z"
+    },
+    "src/libANGLE/validationES2_autogen.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:06.397Z"
+    },
+    "src/libANGLE/validationES2.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:07.188Z"
+    },
+    "src/libANGLE/validationES2.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:07.876Z"
+    },
+    "src/libANGLE/validationES3_autogen.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:08.325Z"
+    },
+    "src/libANGLE/validationES3.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:08.997Z"
+    },
+    "src/libANGLE/validationES3.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:10.916Z"
+    },
+    "src/libANGLE/renderer/BufferImpl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:36.245Z"
+    },
+    "src/libANGLE/renderer/ContextImpl.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:41.805Z"
+    },
+    "src/libANGLE/renderer/CompilerImpl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:17:44.629Z"
+    },
+    "src/libANGLE/renderer/ProgramImpl.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:01.437Z"
+    },
+    "src/libANGLE/renderer/ShaderImpl.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:07.677Z"
+    },
+    "src/libANGLE/renderer/ShaderImpl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:08.429Z"
+    },
+    "src/libANGLE/renderer/d3d/CompilerD3D.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:25.365Z"
+    },
+    "src/libANGLE/renderer/d3d/CompilerD3D.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:28.357Z"
+    },
+    "src/libANGLE/renderer/d3d/DynamicHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:31.869Z"
+    },
+    "src/libANGLE/renderer/d3d/DynamicHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:32.725Z"
+    },
+    "src/libANGLE/renderer/d3d/HLSLCompiler.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:38.821Z"
+    },
+    "src/libANGLE/renderer/d3d/HLSLCompiler.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:39.445Z"
+    },
+    "src/libANGLE/renderer/d3d/ProgramD3D.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:43.125Z"
+    },
+    "src/libANGLE/renderer/d3d/ProgramD3D.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:43.445Z"
+    },
+    "src/libANGLE/renderer/d3d/ProgramExecutableD3D.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:45.252Z"
+    },
+    "src/libANGLE/renderer/d3d/RendererD3D.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:18:52.574Z"
+    },
+    "src/libANGLE/renderer/d3d/ShaderD3D.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:19:04.269Z"
+    },
+    "src/libANGLE/renderer/d3d/ShaderD3D.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:19:04.957Z"
+    },
+    "src/libANGLE/renderer/d3d/ShaderExecutableD3D.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:19:06.902Z"
+    },
+    "src/libANGLE/renderer/d3d/ShaderExecutableD3D.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:19:07.391Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Program11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:19:46.645Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Program11.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:19:47.317Z"
+    },
+    "src/compiler/translator/hlsl/ASTMetadataHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:23:42.213Z"
+    },
+    "src/compiler/translator/hlsl/ASTMetadataHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:23:43.989Z"
+    },
+    "src/compiler/translator/hlsl/BuiltInFunctionEmulatorHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:23:52.653Z"
+    },
+    "src/compiler/translator/hlsl/BuiltInFunctionEmulatorHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:23:53.854Z"
+    },
+    "src/compiler/translator/hlsl/emulated_builtin_functions_hlsl_autogen.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:03.405Z"
+    },
+    "src/compiler/translator/hlsl/OutputHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:11.917Z"
+    },
+    "src/compiler/translator/hlsl/OutputHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:12.877Z"
+    },
+    "src/compiler/translator/hlsl/ResourcesHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:14.693Z"
+    },
+    "src/compiler/translator/hlsl/ResourcesHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:15.030Z"
+    },
+    "src/compiler/translator/hlsl/ShaderStorageBlockFunctionHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:16.141Z"
+    },
+    "src/compiler/translator/hlsl/ShaderStorageBlockFunctionHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:19.357Z"
+    },
+    "src/compiler/translator/hlsl/ShaderStorageBlockOutputHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:19.709Z"
+    },
+    "src/compiler/translator/hlsl/ShaderStorageBlockOutputHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:20.117Z"
+    },
+    "src/compiler/translator/hlsl/StructureHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:21.261Z"
+    },
+    "src/compiler/translator/hlsl/StructureHLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:21.645Z"
+    },
+    "src/compiler/translator/glsl/OutputESSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:38.902Z"
+    },
+    "src/compiler/translator/glsl/OutputGLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:41.430Z"
+    },
+    "src/compiler/translator/glsl/OutputESSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:41.838Z"
+    },
+    "src/compiler/translator/glsl/OutputGLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:42.661Z"
+    },
+    "src/compiler/translator/glsl/OutputGLSLBase.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:43.031Z"
+    },
+    "src/compiler/translator/glsl/OutputGLSLBase.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:43.973Z"
+    },
+    "src/compiler/translator/glsl/TranslatorESSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:45.517Z"
+    },
+    "src/compiler/translator/glsl/TranslatorGLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:46.045Z"
+    },
+    "src/compiler/translator/glsl/TranslatorGLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:47.365Z"
+    },
+    "src/compiler/translator/glsl/VersionGLSL.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:47.781Z"
+    },
+    "src/compiler/translator/glsl/VersionGLSL.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:24:48.165Z"
+    },
+    "src/libANGLE/renderer/metal/FrameBufferMtl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:01.923Z"
+    },
+    "src/libANGLE/renderer/metal/FrameBufferMtl.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:02.675Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_command_buffer.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:08.276Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_command_buffer.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:08.861Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_common.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:15.185Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_common.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:15.843Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_library_cache.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:20.312Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_library_cache.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:20.925Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_pipeline_cache.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:25.227Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_pipeline_cache.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:28.160Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_state_cache.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:32.918Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_state_cache.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:33.452Z"
+    },
+    "src/libANGLE/renderer/metal/RenderBufferMtl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:38.593Z"
+    },
+    "src/libANGLE/renderer/metal/RenderBufferMtl.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:39.135Z"
+    },
+    "src/libANGLE/renderer/metal/TextureMtl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:46.062Z"
+    },
+    "src/libANGLE/renderer/metal/TextureMtl.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:46.493Z"
+    },
+    "src/libANGLE/renderer/metal/VertexArrayMtl.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:51.943Z"
+    },
+    "src/libANGLE/renderer/metal/VertexArrayMtl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:37:52.426Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Buffer11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:23.218Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Buffer11.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:24.100Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Framebuffer11.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:36.219Z"
+    },
+    "src/libANGLE/renderer/d3d/d3d11/Framebuffer11.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:36.782Z"
+    },
+    "src/libANGLE/renderer/metal/renderermtl_utils.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:43.114Z"
+    },
+    "src/libANGLE/renderer/metal/RenderTargetMtl.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:45.349Z"
+    },
+    "src/libANGLE/renderer/metal/RenderTargetMtl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:46.048Z"
+    },
+    "src/libANGLE/renderer/metal/renderermtl_utils.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:47.394Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_render_utils.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:55.965Z"
+    },
+    "src/libANGLE/renderer/metal/mtl_render_utils.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:38:56.357Z"
+    },
+    "src/libANGLE/renderer/metal/BufferMtl.mm": {
+      "checked": true,
+      "ts": "2025-11-08T09:40:41.450Z"
+    },
+    "src/libANGLE/renderer/metal/BufferMtl.h": {
+      "checked": true,
+      "ts": "2025-11-08T09:40:43.584Z"
+    },
+    "src/compiler/translator/VariablePacker.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:40:53.216Z"
+    },
+    "src/compiler/translator/Compiler.cpp": {
+      "checked": true,
+      "ts": "2025-11-08T09:50:48.266Z"
+    }
+  },
+  "manual": [],
+  "meta": {
+    "version": 6,
+    "updatedAt": 1762767160140
+  }
+}
