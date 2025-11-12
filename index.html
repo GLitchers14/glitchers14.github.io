@@ -34,7 +34,7 @@
   .bbar{height:10px;background:#14202a;border:1px solid #233645;border-radius:999px;overflow:hidden}
   .bfill{height:100%;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
   .bright{font-variant-numeric:tabular-nums}
-  footer.footer{margin:18px auto 8px;text-align:center;color:var(--muted);font-size:12px}
+  footer.footer{margin:14px auto 10px;text-align:center;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
@@ -104,7 +104,7 @@ function norm(p){
   return String(p||'')
     .replace(/^third_party\/angle\//,'')
     .replace(/^angle\//,'')
-    .replace(/^\/+/,'');
+    .replace(/^\/+/, '');
 }
 function base(p){ const i=String(p).lastIndexOf('/'); return i>=0? p.slice(i+1): String(p); }
 function clone(o){return JSON.parse(JSON.stringify(o));}
@@ -128,8 +128,6 @@ function mergeReviewsIntoDB(fromObj){
     if(v && v.checked){
       const nk=norm(k);
       DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
-      const bk=base(nk);
-      DB.reviews[bk]=DB.reviews[bk]||{checked:true,ts:DB.reviews[nk].ts};
     }
   }
   saveDB(DB);
@@ -170,7 +168,7 @@ let WL_FILES=[];
 let TREE=null;
 
 function gh(path){
-  const u='https://api.github.com/'+String(path).replace(/^\/+/,'');
+  const u='https://api.github.com/'+String(path).replace(/^\/+/, '');
   return fetch(u,{
     headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GH_VER},
     cache:'no-store'
@@ -333,22 +331,13 @@ function recalcAndPaint(){
 
 function isReviewed(p){
   const k=norm(p);
-  if(DB.reviews && DB.reviews[k] && DB.reviews[k].checked) return true;
-  const b=base(k);
-  if(DB.reviews && DB.reviews[b] && DB.reviews[b].checked) return true;
-  if(DB.reviews){
-    for(const key in DB.reviews){
-      if(key.includes('/') && key.endsWith('/'+b) && DB.reviews[key].checked) return true;
-    }
-  }
-  return false;
+  return !!(DB.reviews && DB.reviews[k] && DB.reviews[k].checked);
 }
 
 function mark(p, checked){
   const k=norm(p);
   if(checked){
     DB.reviews[k]={checked:true,ts:new Date().toISOString()};
-    const b=base(k); DB.reviews[b]=DB.reviews[b]||{checked:true,ts:DB.reviews[k].ts};
   }else{
     delete DB.reviews[k];
   }
@@ -364,7 +353,10 @@ function addCheckedExtrasNotInWhitelist(){
     for(const k in DB.reviews){
       if(DB.reviews[k] && DB.reviews[k].checked){
         const p=norm(k);
-        if(isCppOrMM(p) && !WL_FILES.includes(p)) extras.push(p);
+        if(!p.includes('/')) continue;
+        if(!isCppOrMM(p)) continue;
+        if(!inInclude(p) || inDeny(p)) continue;
+        if(!WL_FILES.includes(p)) extras.push(p);
       }
     }
   }
