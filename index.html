@@ -13,7 +13,6 @@
   .row{display:flex;align-items:center;gap:8px}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
   .btn{border:1px solid var(--border);border-radius:10px;padding:6px 10px;background:#0f141b;color:var(--text);cursor:pointer}
-  .btn.primary{border-color:transparent;background:linear-gradient(90deg,#0ea5e9,#22c55e);color:#021317}
   input{background:#0f141b;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 8px;outline:none}
   .grid{display:grid;grid-template-columns:1fr 2fr; gap:16px}
   @media (max-width:1100px){.grid{grid-template-columns:1fr}}
@@ -35,8 +34,8 @@
   .bbar{height:10px;background:#14202a;border:1px solid #233645;border-radius:999px;overflow:hidden}
   .bfill{height:100%;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
   .bright{font-variant-numeric:tabular-nums}
-  footer{margin:24px auto 8px auto;max-width:1200px;padding:0 16px;color:#8aa0b5}
-  footer p{margin:0;text-align:center;font-size:11px} /* 살짝 더 작게 */
+  /* footer: 작고 중앙, 살짝 위 */
+  footer.footer{margin:18px auto 8px; text-align:center; color:var(--muted); font-size:12px}
 </style>
 </head>
 <body>
@@ -52,11 +51,6 @@
         <input id="branch" class="mono" style="min-width:120px" placeholder="main" value="main"/>
         <button id="apply" class="btn">Apply</button>
         <span id="shaBadge" class="badge"></span>
-        <span style="flex:1"></span>
-        <!-- Import/Export -->
-        <input id="importFile" type="file" accept="application/json" style="display:none"/>
-        <button id="btnImport" class="btn">Import Reviews (JSON)</button>
-        <button id="btnExport" class="btn">Export Reviews (JSON)</button>
       </div>
     </div>
 
@@ -94,6 +88,10 @@
         <div id="tree"></div>
       </div>
     </div>
+
+    <footer class="footer">
+      <p>© 2025 tb4nch0r . All rights reserved.</p>
+    </footer>
   </div>
 </div>
 
@@ -115,9 +113,17 @@ function clone(o){return JSON.parse(JSON.stringify(o));}
 function loadDB(){ try{const raw=localStorage.getItem(LS_DB); return raw?JSON.parse(raw):clone(DEFAULT_DB);}catch{return clone(DEFAULT_DB)} }
 function saveDB(db){ db.meta=db.meta||{}; db.meta.updatedAt=Date.now(); localStorage.setItem(LS_DB,JSON.stringify(db)); }
 
+/* ===== legacy import (optional) ===== */
+const LEGACY_LS_KEYS=[
+  'angle-review-tracker/db.whitelist.v1',
+  'angle-review-tracker/db.whitelist.v2',
+  'angle-review-tracker/whitelist-tree.v1',
+  'angle-review-tracker/whitelist-tree.v2',
+  'angle-review-tracker/whitelist-tree.v3'
+];
 function mergeReviewsIntoDB(fromObj){
   if(!fromObj || typeof fromObj!=='object') return;
-  const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};  
+  const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};
   DB.reviews=DB.reviews||{};
   for(const k in src){
     const v=src[k]; if(v && v.checked){
@@ -129,37 +135,33 @@ function mergeReviewsIntoDB(fromObj){
   }
   saveDB(DB);
 }
-
-async function tryImportFromDataDirOnce(){
-  const candidates=[
-    'data/state.json',
-  ];
-  for(const path of candidates){
-    try{
-      const r=await fetch(path,{cache:'no-store'});
-      if(r.ok){
-        const obj=await r.json();
-        if(obj && obj.reviews){ mergeReviewsIntoDB(obj); }
-      }
-    }catch(_){}
+async function tryImportServerStateOnce(){
+  try{
+    const r=await fetch('/state'); if(!r.ok) return false;
+    const obj=await r.json(); if(obj && obj.reviews){ mergeReviewsIntoDB(obj); return true; }
+  }catch{}
+  return false;
+}
+async function importLegacyOnce(){
+  let imported=false;
+  for(const key of LEGACY_LS_KEYS){
+    try{ const raw=localStorage.getItem(key); if(!raw) continue; mergeReviewsIntoDB(JSON.parse(raw)); imported=true; }catch{}
   }
+  const s=await tryImportServerStateOnce(); imported = imported || s;
+  return imported;
 }
 
 /* ===== global ===== */
 let DB=loadDB();
 let SHA=null;
-let WL_FILES=[];
+let WL_FILES=[]; // normalized
 let TREE=null;
 
+/* ===== GitHub proxy ===== */
 function gh(path){
-  const u='https://api.github.com/'+path.replace(/^\/+/,'');
-  return fetch(u,{
-    headers:{
-      'Accept':'application/vnd.github+json',
-      'X-GitHub-Api-Version':GH_VER,
-      'User-Agent':'glitchers-angle-review'
-    }
-  }).then(r=>r.ok?r.json():r.text().then(t=>{throw new Error(r.status+'  :: '+t)}));
+  const u=location.origin+'/gh/'+path.replace(/^\/+/, '');
+  return fetch(u,{headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GH_VER}})
+    .then(r=>r.ok?r.json():r.text().then(t=>{throw new Error(r.status+' '+r.statusText+' :: '+t)}));
 }
 async function resolveSHA(owner,repo,branch){
   try{
@@ -168,24 +170,48 @@ async function resolveSHA(owner,repo,branch){
   }catch{ return branch; }
 }
 
-/* ===== whitelist & excludes (.cpp + .mm) ===== */
+/* ===== whitelist & excludes (.cpp + .mm) =====
+   include: translator/**, libANGLE/**, renderer/{d3d,gl,vulkan,metal}/**
+   deny:    translator/{ir,msl,tree_ops,apple,tree_util,wgsl,capture}
+            libANGLE/capture/**
+            renderer/{cl,null,wgpu}
+            renderer/vulkan/{android,fuchsia,null,win32,linux/{display,gbm,headless,wayland,xcb}}
+            renderer/gl/{cgl,egl,glx,wgl,egl/android}
+            renderer/metal/file_hooking*
+*/
 const WL_INCLUDE_DIRS=[
   'src/compiler/translator/',
   'src/libANGLE/',
   'src/libANGLE/renderer/d3d/',
   'src/libANGLE/renderer/gl/',
   'src/libANGLE/renderer/vulkan/',
-  'src/libANGLE/renderer/metal/'
+  'src/libANGLE/renderer/metal/',
+  'angle/src/compiler/translator/',
+  'angle/src/libANGLE/',
+  'angle/src/libANGLE/renderer/d3d/',
+  'angle/src/libANGLE/renderer/gl/',
+  'angle/src/libANGLE/renderer/vulkan/',
+  'angle/src/libANGLE/renderer/metal/'
 ];
 const WL_DENY_SUBDIRS=[
   // translator
   'src/compiler/translator/ir/','src/compiler/translator/msl/','src/compiler/translator/tree_ops/','src/compiler/translator/apple/','src/compiler/translator/tree_util/','src/compiler/translator/wgsl/','src/compiler/translator/capture/',
-  'src/libANGLE/capture/',
+  'angle/src/compiler/translator/ir/','angle/src/compiler/translator/msl/','angle/src/compiler/translator/tree_ops/','angle/src/compiler/translator/apple/','angle/src/compiler/translator/tree_util/','angle/src/compiler/translator/wgsl/','angle/src/compiler/translator/capture/',
+  // libANGLE capture
+  'src/libANGLE/capture/','angle/src/libANGLE/capture/',
+  // renderer excludes
   'src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/',
-  'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/','src/libANGLE/renderer/gl/egl/android/',
+  'angle/src/libANGLE/renderer/cl/','angle/src/libANGLE/renderer/null/','angle/src/libANGLE/renderer/wgpu/',
+  // vulkan platform excludes
   'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
   'src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
-  'src/libANGLE/renderer/metal/file_hooking/'
+  'angle/src/libANGLE/renderer/vulkan/android/','angle/src/libANGLE/renderer/vulkan/fuchsia/','angle/src/libANGLE/renderer/vulkan/null/','angle/src/libANGLE/renderer/vulkan/win32/',
+  'angle/src/libANGLE/renderer/vulkan/linux/display/','angle/src/libANGLE/renderer/vulkan/linux/gbm/','angle/src/libANGLE/renderer/vulkan/linux/headless/','angle/src/libANGLE/renderer/vulkan/linux/healess/','angle/src/libANGLE/renderer/vulkan/linux/wayland/','angle/src/libANGLE/renderer/vulkan/linux/xcb/',
+  // GL platform excludes
+  'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/egl/android/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/',
+  'angle/src/libANGLE/renderer/gl/cgl/','angle/src/libANGLE/renderer/gl/egl/','angle/src/libANGLE/renderer/gl/egl/android/','angle/src/libANGLE/renderer/gl/glx/','angle/src/libANGLE/renderer/gl/wgl/',
+  // metal: file_hooking
+  'src/libANGLE/renderer/metal/file_hooking','angle/src/libANGLE/renderer/metal/file_hooking'
 ];
 function inInclude(p){ return WL_INCLUDE_DIRS.some(pre=>p.startsWith(pre)); }
 function inDeny(p){ return WL_DENY_SUBDIRS.some(pre=>p.startsWith(pre)); }
@@ -201,7 +227,7 @@ function setDonut(pct){
   $('donutText').textContent=t+'%'; $('pctText').textContent=t+'%';
 }
 
-/* ===== tree build/render ===== */
+/* ===== tree ===== */
 function buildTree(paths){
   const root={name:'',type:'dir',children:new Map(),total:0,rev:0,full:''};
   function addPath(p){
@@ -215,7 +241,7 @@ function buildTree(paths){
   paths.forEach(addPath);
   function fold(n){
     if(n.type==='file'){ n.rev=isReviewed(n.full)?1:0; n.total=1; return; }
-    let t=0,r=0; const kids=[...n.children.values()].sort((a,b)=> (a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
+    let t=0,r=0; const kids=[...n.children.values()].sort((a,b)=>(a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
     n.childrenList=kids; kids.forEach(k=>{fold(k); t+=k.total; r+=k.rev;}); n.total=t; n.rev=r;
   }
   fold(root); return root;
@@ -288,7 +314,6 @@ function renderBackendTable(){
   for(const k of ['d3d','metal','vulkan']){
     const st=s[k], label=BACKENDS[k].label;
     const pct=st.total? Math.round(st.rev*100/st.total) : 0;
-
     const tr=document.createElement('tr');
     const tdL=document.createElement('td'); tdL.className='bname mono'; tdL.textContent=label;
     const tdM=document.createElement('td'); tdM.style.width='100%';
@@ -296,25 +321,22 @@ function renderBackendTable(){
     const fill=document.createElement('div'); fill.className='bfill'; fill.style.width=pct+'%';
     bar.appendChild(fill); tdM.appendChild(bar);
     const tdR=document.createElement('td'); tdR.className='bright mono'; tdR.style.whiteSpace='nowrap'; tdR.textContent=`${pct}%  (${st.rev}/${st.total})`;
-
     tr.appendChild(tdL); tr.appendChild(tdM); tr.appendChild(tdR);
     tbl.appendChild(tr);
   }
 }
 
-/* ===== counts & painting ==== */
+/* ===== counts ==== */
 function recalcAndPaint(){
   function fold(n){
     if(n.type==='file'){ n.rev=isReviewed(n.full)?1:0; return; }
     let r=0; (n.childrenList||[]).forEach(k=>{fold(k); r+=k.rev;}); n.rev=r;
   }
   fold(TREE);
-
   $('total').textContent = WL_FILES.length || '—';
   const reviewed = WL_FILES.reduce((a,p)=>a+(isReviewed(p)?1:0),0);
   $('rev').textContent = (reviewed||WL_FILES.length)?reviewed:'—';
   setDonut(WL_FILES.length? reviewed/WL_FILES.length : null);
-
   renderBackendTable();
   applyOnlyUnchecked();
 }
@@ -339,7 +361,6 @@ function mark(p, checked){
     const b=base(k); DB.reviews[b]=DB.reviews[b]||{checked:true,ts:DB.reviews[k].ts};
   }else{
     delete DB.reviews[k];
-    delete DB.reviews[base(k)];
   }
   saveDB(DB);
   recalcAndPaint();
@@ -352,46 +373,15 @@ async function loadWhitelistAndRender(){
   const val=$('repo').value.trim(), br=$('branch').value.trim();
   if(!val || !val.includes('/')) throw new Error('repo 형식은 owner/repo');
   if(!br) throw new Error('branch 필요');
-
   const [owner,repo]=val.split('/');
   const sha=await resolveSHA(owner,repo,br);
   SHA=sha; $('shaBadge').textContent='pinned '+(sha||'').slice(0,7);
-
   const t=await gh(`repos/${owner}/${repo}/git/trees/${sha}?recursive=1`);
   const all=(t&&t.tree)?t.tree:[];
   WL_FILES = all.filter(e=>e.type==='blob' && allowedPath(e.path||'')).map(e=>norm(e.path||'')).sort();
-
   TREE=buildTree(WL_FILES);
   renderTree();
   recalcAndPaint();
-}
-
-function exportReviews(){
-  const payload={
-    repo: DB.repo,
-    branch: DB.branch,
-    reviews: DB.reviews,
-    meta: { exportedAt: new Date().toISOString(), version: 1 }
-  };
-  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='angle-reviews.json';
-  document.body.appendChild(a); a.click(); a.remove();
-}
-function importReviewsFromFile(file){
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      const obj=JSON.parse(reader.result);
-      mergeReviewsIntoDB(obj);
-      recalcAndPaint();
-      alert('Imported reviews: OK');
-    }catch(e){
-      alert('Import failed: '+e);
-    }
-  };
-  reader.readAsText(file);
 }
 
 /* ===== UI wiring ===== */
@@ -404,23 +394,14 @@ $('apply').addEventListener('click', async ()=>{
   }catch(e){ setErr(String(e)); }
 });
 $('onlyU').addEventListener('change', applyOnlyUnchecked);
-$('btnExport').addEventListener('click', exportReviews);
-$('btnImport').addEventListener('click', ()=> $('importFile').click());
-$('importFile').addEventListener('change', (e)=>{ const f=e.target.files[0]; if(f) importReviewsFromFile(f); e.target.value=''; });
 
 /* ===== init ===== */
 (async function init(){
   $('repo').value=DB.repo; $('branch').value=DB.branch;
-
-  await tryImportFromDataDirOnce();
-
+  await importLegacyOnce();
   await loadWhitelistAndRender();
 })();
 </script>
-
-<footer>
-  <p>© 2025 tb4nch0r · all right reserved.</p>
-</footer>
 </body>
 </html>
 
