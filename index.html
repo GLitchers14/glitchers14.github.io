@@ -115,7 +115,6 @@ function clone(o){return JSON.parse(JSON.stringify(o));}
 function loadDB(){ try{const raw=localStorage.getItem(LS_DB); return raw?JSON.parse(raw):clone(DEFAULT_DB);}catch{return clone(DEFAULT_DB)} }
 function saveDB(db){ db.meta=db.meta||{}; db.meta.updatedAt=Date.now(); localStorage.setItem(LS_DB,JSON.stringify(db)); }
 
-/* ===== 리뷰 병합 도우미 ===== */
 function mergeReviewsIntoDB(fromObj){
   if(!fromObj || typeof fromObj!=='object') return;
   const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};  
@@ -131,12 +130,9 @@ function mergeReviewsIntoDB(fromObj){
   saveDB(DB);
 }
 
-/* ===== /data 디렉토리에서 초기 JSON 자동 병합 ===== */
 async function tryImportFromDataDirOnce(){
   const candidates=[
-    'data/angle-reviews.json',
-    'data/reviews.json',
-    'data/state.json'
+    'data/state.json',
   ];
   for(const path of candidates){
     try{
@@ -144,7 +140,6 @@ async function tryImportFromDataDirOnce(){
       if(r.ok){
         const obj=await r.json();
         if(obj && obj.reviews){ mergeReviewsIntoDB(obj); }
-        // 하나만 성공해도 충분하니 계속 진행
       }
     }catch(_){}
   }
@@ -156,7 +151,6 @@ let SHA=null;
 let WL_FILES=[];
 let TREE=null;
 
-/* ===== GitHub API (직접 호출) ===== */
 function gh(path){
   const u='https://api.github.com/'+path.replace(/^\/+/,'');
   return fetch(u,{
@@ -186,16 +180,11 @@ const WL_INCLUDE_DIRS=[
 const WL_DENY_SUBDIRS=[
   // translator
   'src/compiler/translator/ir/','src/compiler/translator/msl/','src/compiler/translator/tree_ops/','src/compiler/translator/apple/','src/compiler/translator/tree_util/','src/compiler/translator/wgsl/','src/compiler/translator/capture/',
-  // libANGLE capture
   'src/libANGLE/capture/',
-  // renderer excludes
   'src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/',
-  // GL platform glue 제외
   'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/','src/libANGLE/renderer/gl/egl/android/',
-  // Vulkan 플랫폼별 제외
   'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
   'src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
-  // Metal file_hooking 제외
   'src/libANGLE/renderer/metal/file_hooking/'
 ];
 function inInclude(p){ return WL_INCLUDE_DIRS.some(pre=>p.startsWith(pre)); }
@@ -377,7 +366,6 @@ async function loadWhitelistAndRender(){
   recalcAndPaint();
 }
 
-/* ===== import/export (수동 마이그레이션 용) ===== */
 function exportReviews(){
   const payload={
     repo: DB.repo,
@@ -424,10 +412,8 @@ $('importFile').addEventListener('change', (e)=>{ const f=e.target.files[0]; if(
 (async function init(){
   $('repo').value=DB.repo; $('branch').value=DB.branch;
 
-  // 1) /data 아래 JSON 있으면 먼저 병합
   await tryImportFromDataDirOnce();
 
-  // 2) 화이트리스트 불러오기 + 렌더
   await loadWhitelistAndRender();
 })();
 </script>
