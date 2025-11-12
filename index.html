@@ -3,21 +3,16 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>GLitchers14 (ANGLE Review Tracker)</title>
+<title>GLitchers (ANGLE Review Tracker)</title>
 <style>
   :root{--bg:#0b0f13;--panel:#121822;--border:#1f2a37;--text:#e5eef6;--sub:#92a3b5;--accent:#5eead4;--muted:#74869a}
-
-  /* ---- 레이아웃: 푸터 하단 고정 ---- */
   html,body{height:100%}
   body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
-    display:flex; flex-direction:column; min-height:100vh;
+    margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
+    display:flex;flex-direction:column;min-height:100vh;
   }
-  #root{display:flex; flex-direction:column; flex:1}
-  .wrap{max-width:1200px;margin:0 auto;padding:16px; flex:1}
+  #root{display:flex;flex-direction:column;flex:1}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px;flex:1}
 
   .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px}
   .row{display:flex;align-items:center;gap:8px}
@@ -45,20 +40,14 @@
   .bfill{height:100%;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
   .bright{font-variant-numeric:tabular-nums}
 
-  /* ---- footer ---- */
-  footer{
-    background:var(--panel);
-    border-top:1px solid var(--border);
-    color:var(--muted);
-    padding:10px 16px;
-  }
+  footer{background:var(--panel);border-top:1px solid var(--border);color:var(--muted);padding:10px 16px}
   footer .inner{max-width:1200px;margin:0 auto}
 </style>
 </head>
 <body>
 <div id="root">
   <div class="wrap">
-    <h1>ANGLE Review Tracker — GLitchers14</h1>
+    <h1>ANGLE Review Tracker — GLitchers</h1>
 
     <div class="card" style="margin-bottom:12px">
       <div class="row" style="flex-wrap:wrap;gap:10px">
@@ -66,6 +55,8 @@
         <input id="repo" class="mono" style="min-width:240px" placeholder="owner/repo" value="google/angle"/>
         <span class="badge">branch</span>
         <input id="branch" class="mono" style="min-width:120px" placeholder="main" value="main"/>
+        <span class="badge">token (optional)</span>
+        <input id="ghtoken" class="mono" style="min-width:260px" placeholder="ghp_xxx… (저장됨)"/>
         <button id="apply" class="btn">Apply</button>
         <span id="shaBadge" class="badge"></span>
       </div>
@@ -107,18 +98,14 @@
     </div>
   </div>
 
-  <!-- footer는 #root 안, .wrap 뒤 -->
-  <footer>
-    <div class="inner">
-      <p>© 2025 tb4nch0r. All rights reserved.</p>
-    </div>
-  </footer>
+  <footer><div class="inner"><p>© 2025 tb4nch0r. All rights reserved.</p></div></footer>
 </div>
 
 <script>
 /* ===== constants / storage ===== */
 const GH_VER='2022-11-28';
 const LS_DB='angle-review-tracker/whitelist-tree.v4';
+const LS_TOKEN='angle-review-tracker/gh-token';
 const $=id=>document.getElementById(id);
 const DEFAULT_DB={repo:'google/angle',branch:'main',reviews:{},meta:{version:4,updatedAt:0}};
 
@@ -133,6 +120,7 @@ function clone(o){return JSON.parse(JSON.stringify(o));}
 function loadDB(){ try{const raw=localStorage.getItem(LS_DB); return raw?JSON.parse(raw):clone(DEFAULT_DB);}catch{return clone(DEFAULT_DB)} }
 function saveDB(db){ db.meta=db.meta||{}; db.meta.updatedAt=Date.now(); localStorage.setItem(LS_DB,JSON.stringify(db)); }
 
+/* 리뷰 이력: 로컬 키들만 흡수 (서버 /state 제거) */
 const LEGACY_LS_KEYS=[
   'angle-review-tracker/db.whitelist.v1',
   'angle-review-tracker/db.whitelist.v2',
@@ -140,13 +128,6 @@ const LEGACY_LS_KEYS=[
   'angle-review-tracker/whitelist-tree.v2',
   'angle-review-tracker/whitelist-tree.v3'
 ];
-async function tryImportServerStateOnce(){
-  try{
-    const r=await fetch('/state'); if(!r.ok) return false;
-    const obj=await r.json(); if(obj && obj.reviews){ mergeReviewsIntoDB(obj); return true; }
-  }catch{}
-  return false;
-}
 function mergeReviewsIntoDB(fromObj){
   if(!fromObj || typeof fromObj!=='object') return;
   const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};
@@ -166,7 +147,6 @@ async function importLegacyOnce(){
   for(const key of LEGACY_LS_KEYS){
     try{ const raw=localStorage.getItem(key); if(!raw) continue; mergeReviewsIntoDB(JSON.parse(raw)); imported=true; }catch{}
   }
-  const s=await tryImportServerStateOnce(); imported = imported || s;
   return imported;
 }
 
@@ -176,11 +156,24 @@ let SHA=null;
 let WL_FILES=[]; // normalized
 let TREE=null;
 
-/* ===== GitHub proxy ===== */
+/* ===== GitHub API (직접 호출) ===== */
+function getToken(){ return localStorage.getItem(LS_TOKEN) || ''; }
+function setToken(t){ if(t) localStorage.setItem(LS_TOKEN,t); else localStorage.removeItem(LS_TOKEN); }
 function gh(path){
-  const u=location.origin+'/gh/'+path.replace(/^\/+/, '');
-  return fetch(u,{headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GH_VER}})
-    .then(r=>r.ok?r.json():r.text().then(t=>{throw new Error(r.status+' '+r.statusText+' :: '+t)}));
+  const url = 'https://api.github.com/'+path.replace(/^\/+/, '');
+  const headers = {
+    'Accept':'application/vnd.github+json',
+    'X-GitHub-Api-Version': GH_VER,
+    'User-Agent': 'glitchers-angle-review-tracker'
+  };
+  const tok = getToken().trim();
+  if(tok) headers['Authorization'] = 'Bearer '+tok;
+  return fetch(url,{headers})
+    .then(async r=>{
+      const text=await r.text();
+      if(!r.ok) throw new Error(r.status+' :: '+text);
+      try{ return JSON.parse(text); }catch{ return text; }
+    });
 }
 async function resolveSHA(owner,repo,branch){
   try{
@@ -203,7 +196,7 @@ const WL_DENY_SUBDIRS=[
   'src/compiler/translator/ir/','src/compiler/translator/msl/','src/compiler/translator/tree_ops/','src/compiler/translator/apple/','src/compiler/translator/tree_util/','src/compiler/translator/wgsl/','src/compiler/translator/capture/',
   // libANGLE capture & non-scope renderers
   'src/libANGLE/capture/','src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/',
-  // GL platform layers (데스크톱/플랫폼 종속)
+  // GL platform layers
   'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/','src/libANGLE/renderer/gl/egl/android/',
   // Vulkan 비스코프
   'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
@@ -239,7 +232,7 @@ function buildTree(paths){
   paths.forEach(addPath);
   function fold(n){
     if(n.type==='file'){ n.rev=isReviewed(n.full)?1:0; n.total=1; return; }
-    let t=0,r=0; const kids=[...n.children.values()].sort((a,b)=> (a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
+    let t=0,r=0; const kids=[...n.children.values()].sort((a,b)=>(a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
     n.childrenList=kids; kids.forEach(k=>{fold(k); t+=k.total; r+=k.rev;}); n.total=t; n.rev=r;
   }
   fold(root); return root;
@@ -373,6 +366,8 @@ function setErr(msg){ $('err').textContent=msg||''; }
 async function loadWhitelistAndRender(){
   setErr('');
   const val=$('repo').value.trim(), br=$('branch').value.trim();
+  const tok=$('ghtoken').value.trim();
+  if(tok){ setToken(tok); } // 저장
   if(!val || !val.includes('/')) throw new Error('repo 형식은 owner/repo');
   if(!br) throw new Error('branch 필요');
 
@@ -406,6 +401,8 @@ $('onlyU').addEventListener('change', applyOnlyUnchecked);
 /* ===== init ===== */
 (async function init(){
   $('repo').value=DB.repo; $('branch').value=DB.branch;
+  const savedTok = localStorage.getItem(LS_TOKEN)||'';
+  $('ghtoken').value = savedTok;
   await importLegacyOnce();
   await loadWhitelistAndRender();
 })();
