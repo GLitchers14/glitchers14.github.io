@@ -34,7 +34,7 @@
   .bbar{height:10px;background:#14202a;border:1px solid #233645;border-radius:999px;overflow:hidden}
   .bfill{height:100%;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
   .bright{font-variant-numeric:tabular-nums}
-  footer.footer{margin:18px auto 8px; text-align:center; color:var(--muted); font-size:12px}
+  footer.footer{margin:18px auto 8px;text-align:center;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
@@ -89,7 +89,7 @@
     </div>
 
     <footer class="footer">
-      <p>© 2025 tb4nch0r . All rights reserved.</p>
+      <p>© 2025 tb4nch0r · All rights reserved.</p>
     </footer>
   </div>
 </div>
@@ -104,7 +104,7 @@ function norm(p){
   return String(p||'')
     .replace(/^third_party\/angle\//,'')
     .replace(/^angle\//,'')
-    .replace(/^\/+/, '');
+    .replace(/^\/+/,'');
 }
 function base(p){ const i=String(p).lastIndexOf('/'); return i>=0? p.slice(i+1): String(p); }
 function clone(o){return JSON.parse(JSON.stringify(o));}
@@ -118,77 +118,50 @@ const LEGACY_LS_KEYS=[
   'angle-review-tracker/whitelist-tree.v2',
   'angle-review-tracker/whitelist-tree.v3'
 ];
+
 function mergeReviewsIntoDB(fromObj){
-  if(!fromObj) return;
-  let entries=[];
-  if (Array.isArray(fromObj)) entries = fromObj.map(p=>[p,{checked:true}]);
-  else if (Array.isArray(fromObj.reviews)) entries = fromObj.reviews.map(p=>[p,{checked:true}]);
-  else if (fromObj.reviews && typeof fromObj.reviews==='object') {
-    entries = Object.entries(fromObj.reviews).map(([k,v])=>{
-      if (typeof v==='boolean') return [k,{checked:!!v,ts:new Date().toISOString()}];
-      if (v && typeof v==='object' && 'checked' in v) return [k,{checked:!!v.checked,ts:v.ts||new Date().toISOString()}];
-      return [k,{checked:true,ts:new Date().toISOString()}];
-    });
-  } else {
-    entries = Object.entries(fromObj).filter(([k,v])=>typeof v==='boolean' || (v && typeof v==='object' && 'checked' in v))
-                                     .map(([k,v])=>[k, typeof v==='boolean'?{checked:v}:{checked:!!v.checked,ts:v.ts||new Date().toISOString()}]);
-  }
+  if(!fromObj || typeof fromObj!=='object') return;
+  const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};
   DB.reviews=DB.reviews||{};
-  for (const [k,v] of entries){
-    if(!v || !v.checked) continue;
-    const nk=norm(k);
-    DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
-    const bk=base(nk);
-    DB.reviews[bk]=DB.reviews[bk]||{checked:true,ts:DB.reviews[nk].ts};
+  for(const k in src){
+    const v=src[k];
+    if(v && v.checked){
+      const nk=norm(k);
+      DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
+      const bk=base(nk);
+      DB.reviews[bk]=DB.reviews[bk]||{checked:true,ts:DB.reviews[nk].ts};
+    }
   }
   saveDB(DB);
 }
-function tryImportLegacyLocal(){
-  let imported=false;
-  for(const key of LEGACY_LS_KEYS){
-    try{ const raw=localStorage.getItem(key); if(!raw) continue; mergeReviewsIntoDB(JSON.parse(raw)); imported=true; }catch{}
-  }
-  return imported;
-}
+
 async function tryImportServerStateOnce(){
   try{
-    const r=await fetch('/state'); if(!r.ok) return false;
-    const obj=await r.json(); if(obj){ mergeReviewsIntoDB(obj); return true; }
+    const r1=await fetch('data/state.json',{cache:'no-store'});
+    if(r1.ok){ const obj=await r1.json(); if(obj && obj.reviews){ mergeReviewsIntoDB(obj); return true; } }
+  }catch{}
+  try{
+    const r2=await fetch('/state',{cache:'no-store'});
+    if(r2.ok){ const obj=await r2.json(); if(obj && obj.reviews){ mergeReviewsIntoDB(obj); return true; } }
+  }catch{}
+  try{
+    const r3=await fetch('data/reviews.json',{cache:'no-store'});
+    if(r3.ok){ const obj=await r3.json(); if(obj && obj.reviews){ mergeReviewsIntoDB(obj); return true; } }
+  }catch{}
+  try{
+    const r4=await fetch('data/db.json',{cache:'no-store'});
+    if(r4.ok){ const obj=await r4.json(); if(obj && obj.reviews){ mergeReviewsIntoDB(obj); return true; } }
   }catch{}
   return false;
 }
 
-async function fetchJsonIfExists(url){
-  try{
-    const r=await fetch(url,{cache:'no-store'});
-    if(!r.ok) return null;
-    return await r.json();
-  }catch{ return null; }
-}
-async function tryBundledImportOnce(){
-  const path=location.pathname;
-  const i=path.lastIndexOf('/');
-  const basePath=i>=0? path.slice(0,i+1) : '/';
-  const candidates=[
-    basePath+'data/state.json',
-    'data/state.json',
-    'state.json',
-    '/data/state.json',
-    '/state.json'
-  ];
-  const tried=[];
-  for(const u of candidates){
-    tried.push(u);
-    const obj=await fetchJsonIfExists(u);
-    if(obj){
-      mergeReviewsIntoDB(obj);
-      includeReviewedOutsideWhitelist(obj);
-      $('err').textContent='';
-      return true;
-    }
+async function importLegacyOnce(){
+  let imported=false;
+  for(const key of LEGACY_LS_KEYS){
+    try{ const raw=localStorage.getItem(key); if(!raw) continue; mergeReviewsIntoDB(JSON.parse(raw)); imported=true; }catch{}
   }
-  $('err').textContent='bundled state.json not found. tried:\n'+tried.join('\n');
-  return false;
+  const s=await tryImportServerStateOnce(); imported = imported || s;
+  return imported;
 }
 
 let DB=loadDB();
@@ -197,15 +170,23 @@ let WL_FILES=[];
 let TREE=null;
 
 function gh(path){
-  const u='https://api.github.com/'+path.replace(/^\/+/, '');
-  return fetch(u,{headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GH_VER}})
-    .then(r=>r.ok?r.json():r.text().then(t=>{throw new Error(r.status+' '+r.statusText+' :: '+t)}));
+  const u='https://api.github.com/'+String(path).replace(/^\/+/,'');
+  return fetch(u,{
+    headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GH_VER},
+    cache:'no-store'
+  }).then(async r=>{
+    if(r.ok) return r.json();
+    const body=await r.text().catch(()=> '');
+    const msg=`GitHub API ${r.status} ${r.statusText}\nURL: ${u}\n${body.slice(0,300)}`;
+    const errBox=$('err'); if(errBox) errBox.textContent=msg;
+    return null;
+  }).catch(e=>{ const errBox=$('err'); if(errBox) errBox.textContent=`fetch failed: ${e}`; return null; });
 }
+
 async function resolveSHA(owner,repo,branch){
-  try{
-    const j=await gh(`repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(branch)}`);
-    return (j && j.object && j.object.sha) ? j.object.sha : branch;
-  }catch{ return branch; }
+  const j=await gh(`repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(branch)}`);
+  if(j && j.object && j.object.sha) return j.object.sha;
+  return branch;
 }
 
 const WL_INCLUDE_DIRS=[
@@ -217,8 +198,10 @@ const WL_DENY_SUBDIRS=[
   'angle/src/compiler/translator/ir/','angle/src/compiler/translator/msl/','angle/src/compiler/translator/tree_ops/','angle/src/compiler/translator/apple/','angle/src/compiler/translator/tree_util/','angle/src/compiler/translator/wgsl/','angle/src/compiler/translator/capture/',
   'src/libANGLE/capture/','angle/src/libANGLE/capture/',
   'src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/','angle/src/libANGLE/renderer/cl/','angle/src/libANGLE/renderer/null/','angle/src/libANGLE/renderer/wgpu/',
-  'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/','src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
-  'angle/src/libANGLE/renderer/vulkan/android/','angle/src/libANGLE/renderer/vulkan/fuchsia/','angle/src/libANGLE/renderer/vulkan/null/','angle/src/libANGLE/renderer/vulkan/win32/','angle/src/libANGLE/renderer/vulkan/linux/display/','angle/src/libANGLE/renderer/vulkan/linux/gbm/','angle/src/libANGLE/renderer/vulkan/linux/headless/','angle/src/libANGLE/renderer/vulkan/linux/healess/','angle/src/libANGLE/renderer/vulkan/linux/wayland/','angle/src/libANGLE/renderer/vulkan/linux/xcb/',
+  'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
+  'src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
+  'angle/src/libANGLE/renderer/vulkan/android/','angle/src/libANGLE/renderer/vulkan/fuchsia/','angle/src/libANGLE/renderer/vulkan/null/','angle/src/libANGLE/renderer/vulkan/win32/',
+  'angle/src/libANGLE/renderer/vulkan/linux/display/','angle/src/libANGLE/renderer/vulkan/linux/gbm/','angle/src/libANGLE/renderer/vulkan/linux/headless/','angle/src/libANGLE/renderer/vulkan/linux/healess/','angle/src/libANGLE/renderer/vulkan/linux/wayland/','angle/src/libANGLE/renderer/vulkan/linux/xcb/',
   'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/egl/android/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/',
   'angle/src/libANGLE/renderer/gl/cgl/','angle/src/libANGLE/renderer/gl/egl/','angle/src/libANGLE/renderer/gl/egl/android/','angle/src/libANGLE/renderer/gl/glx/','angle/src/libANGLE/renderer/gl/wgl/',
   'src/libANGLE/renderer/metal/file_hooking','angle/src/libANGLE/renderer/metal/file_hooking'
@@ -254,6 +237,7 @@ function buildTree(paths){
   }
   fold(root); return root;
 }
+
 function renderTree(){
   const holder=$('tree'); holder.innerHTML='';
   function renderNode(node, parent){
@@ -301,10 +285,11 @@ function applyOnlyUnchecked(){
 }
 
 const BACKENDS={
-  d3d:   {label:'D3D',    prefix:'src/libANGLE/renderer/d3d/'},
-  metal: {label:'Metal',  prefix:'src/libANGLE/renderer/metal/'},
-  vulkan:{label:'Vulkan', prefix:'src/libANGLE/renderer/vulkan/'}
+  d3d:{label:'D3D',prefix:'src/libANGLE/renderer/d3d/'},
+  metal:{label:'Metal',prefix:'src/libANGLE/renderer/metal/'},
+  vulkan:{label:'Vulkan',prefix:'src/libANGLE/renderer/vulkan/'}
 };
+
 function computeBackendStats(){
   const stats={}; for(const k in BACKENDS) stats[k]={total:0,rev:0};
   for(const p of WL_FILES){
@@ -358,6 +343,7 @@ function isReviewed(p){
   }
   return false;
 }
+
 function mark(p, checked){
   const k=norm(p);
   if(checked){
@@ -371,6 +357,20 @@ function mark(p, checked){
 }
 
 function setErr(msg){ $('err').textContent=msg||''; }
+
+function addCheckedExtrasNotInWhitelist(){
+  const extras=[];
+  if(DB.reviews){
+    for(const k in DB.reviews){
+      if(DB.reviews[k] && DB.reviews[k].checked){
+        const p=norm(k);
+        if(isCppOrMM(p) && !WL_FILES.includes(p)) extras.push(p);
+      }
+    }
+  }
+  if(extras.length){ WL_FILES = Array.from(new Set(WL_FILES.concat(extras))).sort(); }
+}
+
 async function loadWhitelistAndRender(){
   setErr('');
   const val=$('repo').value.trim(), br=$('branch').value.trim();
@@ -379,42 +379,19 @@ async function loadWhitelistAndRender(){
   const [owner,repo]=val.split('/');
   const sha=await resolveSHA(owner,repo,br);
   SHA=sha; $('shaBadge').textContent='pinned '+(sha||'').slice(0,7);
+
   const t=await gh(`repos/${owner}/${repo}/git/trees/${sha}?recursive=1`);
-  const all=(t&&t.tree)?t.tree:[];
-  WL_FILES = all.filter(e=>e.type==='blob' && allowedPath(e.path||'')).map(e=>norm(e.path||'')).sort();
+  const all=(t && t.tree)?t.tree:[];
+  WL_FILES = all
+    .filter(e=>e && e.type==='blob' && allowedPath(e.path||''))
+    .map(e=>norm(e.path||''))
+    .sort();
+
+  addCheckedExtrasNotInWhitelist();
+
   TREE=buildTree(WL_FILES);
   renderTree();
   recalcAndPaint();
-}
-
-function dedupSorted(arr){
-  const out=[]; let prev=null;
-  for(const x of arr.sort()){
-    if(x!==prev){ out.push(x); prev=x; }
-  }
-  return out;
-}
-function includeReviewedOutsideWhitelist(raw){
-  let paths=[];
-  if(Array.isArray(raw)) paths=raw;
-  else if(Array.isArray(raw.reviews)) paths=raw.reviews;
-  else if(raw.reviews && typeof raw.reviews==='object') paths=Object.keys(raw.reviews).filter(k=>{
-    const v=raw.reviews[k];
-    return (v===true) || (v && typeof v==='object' && v.checked===true);
-  });
-  else paths=Object.keys(raw||{});
-  const add=[];
-  for(const p0 of paths){
-    const p=norm(p0);
-    if(!isCppOrMM(p)) continue;
-    if(!WL_FILES.includes(p)) add.push(p);
-  }
-  if(add.length){
-    WL_FILES = dedupSorted(WL_FILES.concat(add));
-    TREE=buildTree(WL_FILES);
-    renderTree();
-    recalcAndPaint();
-  }
 }
 
 $('apply').addEventListener('click', async ()=>{
@@ -423,19 +400,14 @@ $('apply').addEventListener('click', async ()=>{
     DB.branch=($('branch').value||'').trim();
     saveDB(DB);
     await loadWhitelistAndRender();
-    await tryBundledImportOnce();
-    recalcAndPaint();
   }catch(e){ setErr(String(e)); }
 });
 $('onlyU').addEventListener('change', applyOnlyUnchecked);
 
 (async function init(){
   $('repo').value=DB.repo; $('branch').value=DB.branch;
-  tryImportLegacyLocal();
-  await tryImportServerStateOnce();
+  await importLegacyOnce();
   await loadWhitelistAndRender();
-  await tryBundledImportOnce();
-  recalcAndPaint();
 })();
 </script>
 </body>
