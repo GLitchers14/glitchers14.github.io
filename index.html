@@ -35,8 +35,8 @@
   .bbar{height:10px;background:#14202a;border:1px solid #233645;border-radius:999px;overflow:hidden}
   .bfill{height:100%;background:linear-gradient(90deg,#0ea5e9,#22c55e)}
   .bright{font-variant-numeric:tabular-nums}
-  footer{margin:20px auto 10px auto;max-width:1200px;padding:0 16px;color:#8aa0b5}
-  footer p{margin:0;text-align:center;font-size:11px;letter-spacing:0.2px}
+  footer{margin:24px auto 8px auto;max-width:1200px;padding:0 16px;color:#8aa0b5}
+  footer p{margin:0;text-align:center;font-size:11px} /* 살짝 더 작게 */
 </style>
 </head>
 <body>
@@ -101,14 +101,6 @@
 /* ===== constants / storage ===== */
 const GH_VER='2022-11-28';
 const LS_DB='angle-review-tracker/whitelist-tree.v4';
-const BUNDLED_IMPORT_TAG='angle-review-tracker/bundled-imported.v1'; // avoid re-import loop per origin
-const BUNDLED_CANDIDATES=[
-  'data/angle-reviews.json',
-  'data/reviews.json',
-  'data/state.json',
-  'data/db.json'
-];
-
 const $=id=>document.getElementById(id);
 const DEFAULT_DB={repo:'google/angle',branch:'main',reviews:{},meta:{version:4,updatedAt:0}};
 
@@ -123,26 +115,39 @@ function clone(o){return JSON.parse(JSON.stringify(o));}
 function loadDB(){ try{const raw=localStorage.getItem(LS_DB); return raw?JSON.parse(raw):clone(DEFAULT_DB);}catch{return clone(DEFAULT_DB)} }
 function saveDB(db){ db.meta=db.meta||{}; db.meta.updatedAt=Date.now(); localStorage.setItem(LS_DB,JSON.stringify(db)); }
 
+/* ===== 리뷰 병합 도우미 ===== */
 function mergeReviewsIntoDB(fromObj){
-  if(!fromObj || typeof fromObj!=='object') return 0;
+  if(!fromObj || typeof fromObj!=='object') return;
   const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};  
   DB.reviews=DB.reviews||{};
-  let added=0;
   for(const k in src){
     const v=src[k]; if(v && v.checked){
       const nk=norm(k);
-      if(!DB.reviews[nk] || !DB.reviews[nk].checked){
-        DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
-        added++;
-      }
+      DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
       const bk=base(nk);
-      if(!DB.reviews[bk] || !DB.reviews[bk].checked){
-        DB.reviews[bk]={checked:true,ts:DB.reviews[nk].ts};
-      }
+      DB.reviews[bk]=DB.reviews[bk]||{checked:true,ts:DB.reviews[nk].ts};
     }
   }
-  if(added>0) saveDB(DB);
-  return added;
+  saveDB(DB);
+}
+
+/* ===== /data 디렉토리에서 초기 JSON 자동 병합 ===== */
+async function tryImportFromDataDirOnce(){
+  const candidates=[
+    'data/angle-reviews.json',
+    'data/reviews.json',
+    'data/state.json'
+  ];
+  for(const path of candidates){
+    try{
+      const r=await fetch(path,{cache:'no-store'});
+      if(r.ok){
+        const obj=await r.json();
+        if(obj && obj.reviews){ mergeReviewsIntoDB(obj); }
+        // 하나만 성공해도 충분하니 계속 진행
+      }
+    }catch(_){}
+  }
 }
 
 /* ===== global ===== */
@@ -151,7 +156,7 @@ let SHA=null;
 let WL_FILES=[];
 let TREE=null;
 
-/* ===== GitHub API (direct) ===== */
+/* ===== GitHub API (직접 호출) ===== */
 function gh(path){
   const u='https://api.github.com/'+path.replace(/^\/+/,'');
   return fetch(u,{
@@ -372,35 +377,7 @@ async function loadWhitelistAndRender(){
   recalcAndPaint();
 }
 
-/* ===== bundled import (from /data/*.json on this origin) ===== */
-async function fetchJsonIfExists(path){
-  try{
-    const r=await fetch(path,{cache:'no-store'});
-    if(!r.ok) return null;
-    const ct=r.headers.get('content-type')||'';
-    if(!ct.includes('application/json') && !ct.includes('text/plain')) return null;
-    return await r.json();
-  }catch{ return null; }
-}
-async function tryBundledImportOnce(){
-  if(localStorage.getItem(BUNDLED_IMPORT_TAG)) return; // already tried
-  let best=null, bestScore=-1;
-  for(const p of BUNDLED_CANDIDATES){
-    const obj=await fetchJsonIfExists(p);
-    if(!obj) continue;
-    // score by number of reviewed entries
-    const reviews=(obj.reviews && typeof obj.reviews==='object')?obj.reviews:{};
-    const score=Object.keys(reviews).length;
-    if(score>bestScore){ best=obj; bestScore=score; }
-  }
-  if(best){
-    const added=mergeReviewsIntoDB(best);
-    if(added>0) recalcAndPaint();
-  }
-  localStorage.setItem(BUNDLED_IMPORT_TAG,'1');
-}
-
-/* ===== import/export UI ===== */
+/* ===== import/export (수동 마이그레이션 용) ===== */
 function exportReviews(){
   const payload={
     repo: DB.repo,
@@ -413,7 +390,6 @@ function exportReviews(){
   a.href=URL.createObjectURL(blob);
   a.download='angle-reviews.json';
   document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(a.href);
 }
 function importReviewsFromFile(file){
   const reader=new FileReader();
@@ -447,13 +423,17 @@ $('importFile').addEventListener('change', (e)=>{ const f=e.target.files[0]; if(
 /* ===== init ===== */
 (async function init(){
   $('repo').value=DB.repo; $('branch').value=DB.branch;
+
+  // 1) /data 아래 JSON 있으면 먼저 병합
+  await tryImportFromDataDirOnce();
+
+  // 2) 화이트리스트 불러오기 + 렌더
   await loadWhitelistAndRender();
-  await tryBundledImportOnce(); // auto-merge from /data on first load per origin
 })();
 </script>
 
 <footer>
-  <p>© 2025 GLitchers14. All right reserved.</p>
+  <p>© 2025 GLitchers14 · all right reserved.</p>
 </footer>
 </body>
 </html>
