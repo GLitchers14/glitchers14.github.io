@@ -119,15 +119,31 @@ const LEGACY_LS_KEYS=[
   'angle-review-tracker/whitelist-tree.v3'
 ];
 
+let DB=loadDB();
+let SHA=null;
+let WL_FILES=[];
+let TREE=null;
+
 function mergeReviewsIntoDB(fromObj){
   if(!fromObj || typeof fromObj!=='object') return;
-  const src=(fromObj.reviews && typeof fromObj.reviews==='object')?fromObj.reviews:{};
-  DB.reviews=DB.reviews||{};
-  for(const k in src){
-    const v=src[k];
-    if(v && v.checked){
-      const nk=norm(k);
-      DB.reviews[nk]={checked:true,ts:v.ts||new Date().toISOString()};
+  const src = fromObj.reviews;
+  DB.reviews = DB.reviews || {};
+
+  if (Array.isArray(src)) {
+    for (const item of src) {
+      if (!item) continue;
+      const id = item.id || item.path || item.file || '';
+      if (!id || !item.checked) continue;
+      const nk = norm(id);
+      DB.reviews[nk] = { checked: true, ts: item.ts || new Date().toISOString() };
+    }
+  } else if (src && typeof src === 'object') {
+    for (const k in src) {
+      const v = src[k];
+      if (v && v.checked) {
+        const nk = norm(k);
+        DB.reviews[nk] = { checked: true, ts: v.ts || new Date().toISOString() };
+      }
     }
   }
   saveDB(DB);
@@ -162,23 +178,21 @@ async function importLegacyOnce(){
   return imported;
 }
 
-let DB=loadDB();
-let SHA=null;
-let WL_FILES=[];
-let TREE=null;
-
+// GitHub 호출을 서버 프록시(/gh)로 우회
 function gh(path){
-  const u='https://api.github.com/'+String(path).replace(/^\/+/, '');
-  return fetch(u,{
-    headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GH_VER},
-    cache:'no-store'
-  }).then(async r=>{
-    if(r.ok) return r.json();
-    const body=await r.text().catch(()=> '');
-    const msg=`GitHub API ${r.status} ${r.statusText}\nURL: ${u}\n${body.slice(0,300)}`;
-    const errBox=$('err'); if(errBox) errBox.textContent=msg;
-    return null;
-  }).catch(e=>{ const errBox=$('err'); if(errBox) errBox.textContent=`fetch failed: ${e}`; return null; });
+  const u='/gh/'+String(path).replace(/^\/+/, '');
+  return fetch(u,{cache:'no-store'})
+    .then(async r=>{
+      if(r.ok) return r.json();
+      const body=await r.text().catch(()=> '');
+      const msg=`GitHub proxy ${r.status} ${r.statusText}\nURL: ${u}\n${body.slice(0,300)}`;
+      const errBox=$('err'); if(errBox) errBox.textContent=msg;
+      return null;
+    })
+    .catch(e=>{
+      const errBox=$('err'); if(errBox) errBox.textContent=`fetch failed: ${e}`;
+      return null;
+    });
 }
 
 async function resolveSHA(owner,repo,branch){
@@ -211,10 +225,16 @@ function allowedPath(raw){ const p=norm(raw); return inInclude(p) && !inDeny(p) 
 
 function setDonut(pct){
   const c=2*Math.PI*50;
-  if(typeof pct!=='number'){ $('donutFill').setAttribute('stroke-dashoffset', String(c)); $('donutText').textContent='—%'; $('pctText').textContent='—%'; return; }
+  if(typeof pct!=='number'){
+    $('donutFill').setAttribute('stroke-dashoffset', String(c));
+    $('donutText').textContent='—%';
+    $('pctText').textContent='—%';
+    return;
+  }
   $('donutFill').setAttribute('stroke-dashoffset', String(c*(1-pct)));
   const t=Math.round(pct*100);
-  $('donutText').textContent=t+'%'; $('pctText').textContent=t+'%';
+  $('donutText').textContent=t+'%';
+  $('pctText').textContent=t+'%';
 }
 
 function buildTree(paths){
@@ -223,33 +243,44 @@ function buildTree(paths){
     const parts=p.split('/'); let cur=root, acc=[];
     for(let i=0;i<parts.length;i++){
       const name=parts[i]; acc.push(name); const last=i===parts.length-1;
-      if(last){ cur.children.set(name,{name,type:'file',full:acc.join('/'),total:1,rev:0}); }
-      else{ if(!cur.children.has(name)) cur.children.set(name,{name,type:'dir',children:new Map(),full:acc.join('/'),total:0,rev:0}); cur=cur.children.get(name); }
+      if(last){
+        cur.children.set(name,{name,type:'file',full:acc.join('/'),total:1,rev:0});
+      }else{
+        if(!cur.children.has(name)){
+          cur.children.set(name,{name,type:'dir',children:new Map(),full:acc.join('/'),total:0,rev:0});
+        }
+        cur=cur.children.get(name);
+      }
     }
   }
   paths.forEach(addPath);
   function fold(n){
     if(n.type==='file'){ n.rev=isReviewed(n.full)?1:0; n.total=1; return; }
-    let t=0,r=0; const kids=[...n.children.values()].sort((a,b)=>(a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
-    n.childrenList=kids; kids.forEach(k=>{fold(k); t+=k.total; r+=k.rev;}); n.total=t; n.rev=r;
+    let t=0,r=0;
+    const kids=[...n.children.values()].sort((a,b)=>(a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
+    n.childrenList=kids;
+    kids.forEach(k=>{fold(k); t+=k.total; r+=k.rev;});
+    n.total=t; n.rev=r;
   }
-  fold(root); return root;
+  fold(root);
+  return root;
 }
 
 function renderTree(){
   const holder=$('tree'); holder.innerHTML='';
-  function renderNode(node, parent){
+  function renderNode(node,parent){
     if(node.type==='file'){
       const row=document.createElement('div'); row.className='filerow';
       const left=document.createElement('label'); left.className='row'; left.style.minWidth='0';
       const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=isReviewed(node.full);
-      cb.addEventListener('change',e=>mark(node.full, e.target.checked));
+      cb.addEventListener('change',e=>mark(node.full,e.target.checked));
       const name=document.createElement('span'); name.className='mono fullpath'; name.textContent=node.name;
       left.appendChild(cb); left.appendChild(name);
       const badge=document.createElement('span'); badge.className='badge'; badge.textContent=cb.checked?'✅ reviewed':'⬜ unchecked';
       cb.addEventListener('change',()=>{ badge.textContent=cb.checked?'✅ reviewed':'⬜ unchecked'; });
       row.appendChild(left); row.appendChild(badge);
-      parent.appendChild(row); return;
+      parent.appendChild(row);
+      return;
     }
     const box=document.createElement('div');
     const head=document.createElement('div'); head.className='dirrow';
@@ -258,28 +289,34 @@ function renderTree(){
     const count=document.createElement('span'); count.className='badge'; count.textContent=`${node.rev}/${node.total} files reviewed`;
     head.appendChild(caret); head.appendChild(title); head.appendChild(count);
     const body=document.createElement('div'); body.style.marginLeft='18px'; body.style.display='none';
-    let open=false; head.addEventListener('click',()=>{open=!open; caret.textContent=open?'▾':'▸'; body.style.display=open?'':'none';});
+    let open=false;
+    head.addEventListener('click',()=>{open=!open; caret.textContent=open?'▾':'▸'; body.style.display=open?'':'none';});
     box.appendChild(head); box.appendChild(body); parent.appendChild(box);
     (node.childrenList||[]).forEach(ch=>renderNode(ch,body));
     box.__count=count; box.__body=body; box.__node=node;
   }
-  renderNode(TREE, holder);
+  renderNode(TREE,holder);
   applyOnlyUnchecked();
 }
 
 function applyOnlyUnchecked(){
   const onlyU=$('onlyU').checked;
-  function walk(node, el){
+  function walk(node,el){
     if(node.type==='file'){
       el.style.display = (!onlyU || !isReviewed(node.full)) ? '' : 'none';
       return;
     }
     const body=el.__body, kids=node.childrenList||[]; let shown=0;
-    for(let i=0;i<kids.length;i++){ const childEl=body.children[i]; walk(kids[i], childEl); if(childEl.style.display!=='none') shown++; }
+    for(let i=0;i<kids.length;i++){
+      const childEl=body.children[i];
+      walk(kids[i],childEl);
+      if(childEl.style.display!=='none') shown++;
+    }
     el.style.display = shown>0 ? '' : 'none';
     el.__count.textContent=`${node.rev}/${node.total} files reviewed`;
   }
-  const rootEl=$('tree').children[0]; if(rootEl) walk(TREE, rootEl);
+  const rootEl=$('tree').children[0];
+  if(rootEl) walk(TREE,rootEl);
 }
 
 const BACKENDS={
@@ -292,11 +329,16 @@ function computeBackendStats(){
   const stats={}; for(const k in BACKENDS) stats[k]={total:0,rev:0};
   for(const p of WL_FILES){
     for(const k in BACKENDS){
-      if(p.startsWith(BACKENDS[k].prefix)){ stats[k].total++; if(isReviewed(p)) stats[k].rev++; break; }
+      if(p.startsWith(BACKENDS[k].prefix)){
+        stats[k].total++;
+        if(isReviewed(p)) stats[k].rev++;
+        break;
+      }
     }
   }
   return stats;
 }
+
 function renderBackendTable(){
   const tbl=$('backendTable'); tbl.innerHTML='';
   const s=computeBackendStats();
@@ -334,7 +376,7 @@ function isReviewed(p){
   return !!(DB.reviews && DB.reviews[k] && DB.reviews[k].checked);
 }
 
-function mark(p, checked){
+function mark(p,checked){
   const k=norm(p);
   if(checked){
     DB.reviews[k]={checked:true,ts:new Date().toISOString()};
@@ -360,7 +402,9 @@ function addCheckedExtrasNotInWhitelist(){
       }
     }
   }
-  if(extras.length){ WL_FILES = Array.from(new Set(WL_FILES.concat(extras))).sort(); }
+  if(extras.length){
+    WL_FILES = Array.from(new Set(WL_FILES.concat(extras))).sort();
+  }
 }
 
 async function loadWhitelistAndRender(){
@@ -368,9 +412,11 @@ async function loadWhitelistAndRender(){
   const val=$('repo').value.trim(), br=$('branch').value.trim();
   if(!val || !val.includes('/')) throw new Error('repo 형식은 owner/repo');
   if(!br) throw new Error('branch 필요');
+
   const [owner,repo]=val.split('/');
   const sha=await resolveSHA(owner,repo,br);
-  SHA=sha; $('shaBadge').textContent='pinned '+(sha||'').slice(0,7);
+  SHA=sha;
+  $('shaBadge').textContent='pinned '+(sha||'').slice(0,7);
 
   const t=await gh(`repos/${owner}/${repo}/git/trees/${sha}?recursive=1`);
   const all=(t && t.tree)?t.tree:[];
@@ -397,11 +443,11 @@ $('apply').addEventListener('click', async ()=>{
 $('onlyU').addEventListener('change', applyOnlyUnchecked);
 
 (async function init(){
-  $('repo').value=DB.repo; $('branch').value=DB.branch;
+  $('repo').value=DB.repo;
+  $('branch').value=DB.branch;
   await importLegacyOnce();
   await loadWhitelistAndRender();
 })();
 </script>
 </body>
 </html>
-
