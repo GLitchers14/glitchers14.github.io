@@ -189,34 +189,6 @@ const LEGACY_LS_KEYS = [
   'angle-review-tracker/whitelist-tree.v3'
 ];
 
-<<<<<<< HEAD
-let DB=loadDB();
-let SHA=null;
-let WL_FILES=[];
-let TREE=null;
-
-function mergeReviewsIntoDB(fromObj){
-  if(!fromObj || typeof fromObj!=='object') return;
-  const src = fromObj.reviews;
-  DB.reviews = DB.reviews || {};
-
-  if (Array.isArray(src)) {
-    for (const item of src) {
-      if (!item) continue;
-      const id = item.id || item.path || item.file || '';
-      if (!id || !item.checked) continue;
-      const nk = norm(id);
-      DB.reviews[nk] = { checked: true, ts: item.ts || new Date().toISOString() };
-    }
-  } else if (src && typeof src === 'object') {
-    for (const k in src) {
-      const v = src[k];
-      if (v && v.checked) {
-        const nk = norm(k);
-        DB.reviews[nk] = { checked: true, ts: v.ts || new Date().toISOString() };
-      }
-    }
-=======
 // reviews: { "path": true } 또는 { "path": {checked:true} } 둘 다 지원
 function mergeReviewsIntoDB(fromObj){
   if(!fromObj || typeof fromObj !== 'object') return;
@@ -239,7 +211,6 @@ function mergeReviewsIntoDB(fromObj){
       : new Date().toISOString();
 
     DB.reviews[nk] = { checked: true, ts };
->>>>>>> 77df32c (GLitchers14 angle review tracker)
   }
 
   saveDB(DB);
@@ -292,23 +263,6 @@ async function importLegacyOnce(){
   return imported;
 }
 
-<<<<<<< HEAD
-// GitHub 호출을 서버 프록시(/gh)로 우회
-function gh(path){
-  const u='/gh/'+String(path).replace(/^\/+/, '');
-  return fetch(u,{cache:'no-store'})
-    .then(async r=>{
-      if(r.ok) return r.json();
-      const body=await r.text().catch(()=> '');
-      const msg=`GitHub proxy ${r.status} ${r.statusText}\nURL: ${u}\n${body.slice(0,300)}`;
-      const errBox=$('err'); if(errBox) errBox.textContent=msg;
-      return null;
-    })
-    .catch(e=>{
-      const errBox=$('err'); if(errBox) errBox.textContent=`fetch failed: ${e}`;
-      return null;
-    });
-=======
 let DB = loadDB();
 let SHA = null;
 let WL_FILES = [];
@@ -334,7 +288,6 @@ function gh(path){
     if(errBox) errBox.textContent = `fetch failed: ${e}`;
     return null;
   });
->>>>>>> 77df32c (GLitchers14 angle review tracker)
 }
 
 async function resolveSHA(owner,repo,branch){
@@ -354,6 +307,26 @@ const WL_DENY_SUBDIRS = [
   'src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/','angle/src/libANGLE/renderer/cl/','angle/src/libANGLE/renderer/null/','angle/src/libANGLE/renderer/wgpu/',
   'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
   'src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
+ 'src/libANGLE/renderer/vulkan/CLCommandQueueVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLContextVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLDeviceVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLEventVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLKernelVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLMemoryVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLPlatformVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLProgramVk.cpp',
+  'src/libANGLE/renderer/vulkan/CLSamplerVk.cpp',
+  'src/libANGLE/renderer/vulkan/clspv_utils.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLCommandQueueVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLContextVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLDeviceVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLEventVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLKernelVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLMemoryVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLPlatformVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLProgramVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/CLSamplerVk.cpp',
+  'angle/src/libANGLE/renderer/vulkan/clspv_utils.cpp',
   'angle/src/libANGLE/renderer/vulkan/android/','angle/src/libANGLE/renderer/vulkan/fuchsia/','angle/src/libANGLE/renderer/vulkan/null/','angle/src/libANGLE/renderer/vulkan/win32/',
   'angle/src/libANGLE/renderer/vulkan/linux/display/','angle/src/libANGLE/renderer/vulkan/linux/gbm/','angle/src/libANGLE/renderer/vulkan/linux/headless/','angle/src/libANGLE/renderer/vulkan/linux/healess/','angle/src/libANGLE/renderer/vulkan/linux/wayland/','angle/src/libANGLE/renderer/vulkan/linux/xcb/',
   'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/egl/android/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/',
@@ -370,19 +343,6 @@ function allowedPath(raw){
 }
 
 function setDonut(pct){
-<<<<<<< HEAD
-  const c=2*Math.PI*50;
-  if(typeof pct!=='number'){
-    $('donutFill').setAttribute('stroke-dashoffset', String(c));
-    $('donutText').textContent='—%';
-    $('pctText').textContent='—%';
-    return;
-  }
-  $('donutFill').setAttribute('stroke-dashoffset', String(c*(1-pct)));
-  const t=Math.round(pct*100);
-  $('donutText').textContent=t+'%';
-  $('pctText').textContent=t+'%';
-=======
   const c = 2*Math.PI*50;
   if(typeof pct !== 'number'){
     $('donutFill').setAttribute('stroke-dashoffset', String(c));
@@ -394,7 +354,6 @@ function setDonut(pct){
   const t = Math.round(pct*100);
   $('donutText').textContent = t + '%';
   $('pctText').textContent = t + '%';
->>>>>>> 77df32c (GLitchers14 angle review tracker)
 }
 
 function buildTree(paths){
@@ -405,16 +364,6 @@ function buildTree(paths){
     let cur = root;
     const acc = [];
     for(let i=0;i<parts.length;i++){
-<<<<<<< HEAD
-      const name=parts[i]; acc.push(name); const last=i===parts.length-1;
-      if(last){
-        cur.children.set(name,{name,type:'file',full:acc.join('/'),total:1,rev:0});
-      }else{
-        if(!cur.children.has(name)){
-          cur.children.set(name,{name,type:'dir',children:new Map(),full:acc.join('/'),total:0,rev:0});
-        }
-        cur=cur.children.get(name);
-=======
       const name = parts[i];
       acc.push(name);
       const last = (i === parts.length-1);
@@ -434,7 +383,6 @@ function buildTree(paths){
           });
         }
         cur = cur.children.get(name);
->>>>>>> 77df32c (GLitchers14 angle review tracker)
       }
     }
   }
@@ -442,15 +390,6 @@ function buildTree(paths){
   paths.forEach(addPath);
 
   function fold(n){
-<<<<<<< HEAD
-    if(n.type==='file'){ n.rev=isReviewed(n.full)?1:0; n.total=1; return; }
-    let t=0,r=0;
-    const kids=[...n.children.values()].sort((a,b)=>(a.type!==b.type)?(a.type==='dir'?-1:1):a.name.localeCompare(b.name));
-    n.childrenList=kids;
-    kids.forEach(k=>{fold(k); t+=k.total; r+=k.rev;});
-    n.total=t; n.rev=r;
-  }
-=======
     if(n.type === 'file'){
       n.rev = isReviewed(n.full) ? 1 : 0;
       n.total = 1;
@@ -467,43 +406,11 @@ function buildTree(paths){
     n.rev = r;
   }
 
->>>>>>> 77df32c (GLitchers14 angle review tracker)
   fold(root);
   return root;
 }
 
 function renderTree(){
-<<<<<<< HEAD
-  const holder=$('tree'); holder.innerHTML='';
-  function renderNode(node,parent){
-    if(node.type==='file'){
-      const row=document.createElement('div'); row.className='filerow';
-      const left=document.createElement('label'); left.className='row'; left.style.minWidth='0';
-      const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=isReviewed(node.full);
-      cb.addEventListener('change',e=>mark(node.full,e.target.checked));
-      const name=document.createElement('span'); name.className='mono fullpath'; name.textContent=node.name;
-      left.appendChild(cb); left.appendChild(name);
-      const badge=document.createElement('span'); badge.className='badge'; badge.textContent=cb.checked?'✅ reviewed':'⬜ unchecked';
-      cb.addEventListener('change',()=>{ badge.textContent=cb.checked?'✅ reviewed':'⬜ unchecked'; });
-      row.appendChild(left); row.appendChild(badge);
-      parent.appendChild(row);
-      return;
-    }
-    const box=document.createElement('div');
-    const head=document.createElement('div'); head.className='dirrow';
-    const caret=document.createElement('span'); caret.className='caret'; caret.textContent='▸';
-    const title=document.createElement('span'); title.style.fontWeight='600'; title.textContent=node.name||'/';
-    const count=document.createElement('span'); count.className='badge'; count.textContent=`${node.rev}/${node.total} files reviewed`;
-    head.appendChild(caret); head.appendChild(title); head.appendChild(count);
-    const body=document.createElement('div'); body.style.marginLeft='18px'; body.style.display='none';
-    let open=false;
-    head.addEventListener('click',()=>{open=!open; caret.textContent=open?'▾':'▸'; body.style.display=open?'':'none';});
-    box.appendChild(head); box.appendChild(body); parent.appendChild(box);
-    (node.childrenList||[]).forEach(ch=>renderNode(ch,body));
-    box.__count=count; box.__body=body; box.__node=node;
-  }
-  renderNode(TREE,holder);
-=======
   const holder = $('tree');
   holder.innerHTML = '';
 
@@ -584,30 +491,10 @@ function renderTree(){
   }
 
   renderNode(TREE, holder);
->>>>>>> 77df32c (GLitchers14 angle review tracker)
   applyOnlyUnchecked();
 }
 
 function applyOnlyUnchecked(){
-<<<<<<< HEAD
-  const onlyU=$('onlyU').checked;
-  function walk(node,el){
-    if(node.type==='file'){
-      el.style.display = (!onlyU || !isReviewed(node.full)) ? '' : 'none';
-      return;
-    }
-    const body=el.__body, kids=node.childrenList||[]; let shown=0;
-    for(let i=0;i<kids.length;i++){
-      const childEl=body.children[i];
-      walk(kids[i],childEl);
-      if(childEl.style.display!=='none') shown++;
-    }
-    el.style.display = shown>0 ? '' : 'none';
-    el.__count.textContent=`${node.rev}/${node.total} files reviewed`;
-  }
-  const rootEl=$('tree').children[0];
-  if(rootEl) walk(TREE,rootEl);
-=======
   const onlyU = $('onlyU').checked;
 
   function walk(node, el){
@@ -629,7 +516,6 @@ function applyOnlyUnchecked(){
 
   const rootEl = $('tree').children[0];
   if(rootEl) walk(TREE, rootEl);
->>>>>>> 77df32c (GLitchers14 angle review tracker)
 }
 
 const BACKENDS = {
@@ -638,43 +524,32 @@ const BACKENDS = {
   vulkan:{ label:'Vulkan',prefix:'src/libANGLE/renderer/vulkan/'}
 };
 
-// ★ 백엔드 진행률: WL_FILES + DB.reviews 둘 다 반영
 function computeBackendStats(){
-<<<<<<< HEAD
-  const stats={}; for(const k in BACKENDS) stats[k]={total:0,rev:0};
-  for(const p of WL_FILES){
-    for(const k in BACKENDS){
-      if(p.startsWith(BACKENDS[k].prefix)){
-        stats[k].total++;
-        if(isReviewed(p)) stats[k].rev++;
-=======
   const stats = {};
   for (const k in BACKENDS) stats[k] = { total: 0, rev: 0 };
 
   const wlSet = new Set(WL_FILES);
 
-  // 1) 화이트리스트 기준 기본 집계
   for (const p of WL_FILES) {
     for (const k in BACKENDS) {
       const pref = BACKENDS[k].prefix;
       if (p.startsWith(pref)) {
         stats[k].total++;
         if (isReviewed(p)) stats[k].rev++;
->>>>>>> 77df32c (GLitchers14 angle review tracker)
         break;
       }
     }
   }
 
-  // 2) DB.reviews에만 존재하는 파일들도 백엔드 합산에 포함
   if (DB.reviews) {
     for (const rawKey in DB.reviews) {
       const v = DB.reviews[rawKey];
       if (!v || !v.checked) continue;
 
       const p = norm(rawKey);
-      if (wlSet.has(p)) continue;    // 이미 WL_FILES에서 처리됨
+      if (wlSet.has(p)) continue;
       if (!isCppOrMM(p)) continue;
+      if (!inInclude(p) || inDeny(p)) continue;
 
       for (const k in BACKENDS) {
         const pref = BACKENDS[k].prefix;
@@ -754,13 +629,8 @@ function isReviewed(p){
   return !!(DB.reviews && DB.reviews[k] && DB.reviews[k].checked);
 }
 
-<<<<<<< HEAD
-function mark(p,checked){
-  const k=norm(p);
-=======
 function mark(p, checked){
   const k = norm(p);
->>>>>>> 77df32c (GLitchers14 angle review tracker)
   if(checked){
     DB.reviews[k] = { checked:true, ts:new Date().toISOString() };
   }else{
@@ -790,8 +660,6 @@ function addCheckedExtrasNotInWhitelist(){
   if(extras.length){
     WL_FILES = Array.from(new Set(WL_FILES.concat(extras))).sort();
   }
-<<<<<<< HEAD
-=======
 }
 
 // ★ numeric key → 경로 기반 key로 마이그레이션
@@ -828,7 +696,6 @@ function migrateIndexReviewsToPaths(){
 
   DB.reviews = newReviews;
   saveDB(DB);   // 마이그레이션 결과를 localStorage + /state에 반영
->>>>>>> 77df32c (GLitchers14 angle review tracker)
 }
 
 async function loadWhitelistAndRender(){
@@ -837,14 +704,6 @@ async function loadWhitelistAndRender(){
   const br  = $('branch').value.trim();
   if(!val || !val.includes('/')) throw new Error('repo 형식은 owner/repo');
   if(!br) throw new Error('branch 필요');
-<<<<<<< HEAD
-
-  const [owner,repo]=val.split('/');
-  const sha=await resolveSHA(owner,repo,br);
-  SHA=sha;
-  $('shaBadge').textContent='pinned '+(sha||'').slice(0,7);
-=======
->>>>>>> 77df32c (GLitchers14 angle review tracker)
 
   const [owner,repo] = val.split('/');
   const sha = await resolveSHA(owner,repo,br);
@@ -882,16 +741,12 @@ $('apply').addEventListener('click', async ()=>{
 $('onlyU').addEventListener('change', applyOnlyUnchecked);
 
 (async function init(){
-<<<<<<< HEAD
-  $('repo').value=DB.repo;
-  $('branch').value=DB.branch;
-=======
   $('repo').value = DB.repo;
   $('branch').value = DB.branch;
->>>>>>> 77df32c (GLitchers14 angle review tracker)
   await importLegacyOnce();
   await loadWhitelistAndRender();
 })();
 </script>
 </body>
 </html>
+
