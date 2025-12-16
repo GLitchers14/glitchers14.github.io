@@ -100,7 +100,6 @@ const LS_DB = 'angle-review-tracker/whitelist-tree.v4';
 const STATE_ENDPOINT = '/state';
 const $ = id => document.getElementById(id);
 
-// 서버 기본값과 형식 맞춤
 const DEFAULT_DB = {
   repo: 'google/angle',
   branch: 'main',
@@ -189,7 +188,6 @@ const LEGACY_LS_KEYS = [
   'angle-review-tracker/whitelist-tree.v3'
 ];
 
-// reviews: { "path": true } 또는 { "path": {checked:true} } 둘 다 지원
 function mergeReviewsIntoDB(fromObj){
   if(!fromObj || typeof fromObj !== 'object') return;
 
@@ -301,12 +299,37 @@ const WL_INCLUDE_DIRS = [
   'angle/src/compiler/translator/','angle/src/libANGLE/','angle/src/libANGLE/renderer/d3d/','angle/src/libANGLE/renderer/gl/','angle/src/libANGLE/renderer/vulkan/','angle/src/libANGLE/renderer/metal/'
 ];
 const WL_DENY_SUBDIRS = [
-  'src/compiler/translator/ir/','src/compiler/translator/msl/','src/compiler/translator/tree_ops/','src/compiler/translator/apple/','src/compiler/translator/tree_util/','src/compiler/translator/wgsl/','src/compiler/translator/capture/',
-  'angle/src/compiler/translator/ir/','angle/src/compiler/translator/msl/','angle/src/compiler/translator/tree_ops/','angle/src/compiler/translator/apple/','angle/src/compiler/translator/tree_util/','angle/src/compiler/translator/wgsl/','angle/src/compiler/translator/capture/',
+  'src/compiler/translator/ir/','src/compiler/translator/apple/','src/compiler/translator/tree_util/','src/compiler/translator/wgsl/','src/compiler/translator/capture/','src/compiler/translator/tree_ops/glsl', 'src/compiler/translator/tree_ops/hlsl', 'src/compiler/translator/tree_ops/wgsl',
+  'angle/src/compiler/translator/ir/','angle/src/compiler/translator/apple/','angle/src/compiler/translator/tree_util/','angle/src/compiler/translator/wgsl/','angle/src/compiler/translator/capture/',
   'src/libANGLE/capture/','angle/src/libANGLE/capture/',
   'src/libANGLE/renderer/cl/','src/libANGLE/renderer/null/','src/libANGLE/renderer/wgpu/','angle/src/libANGLE/renderer/cl/','angle/src/libANGLE/renderer/null/','angle/src/libANGLE/renderer/wgpu/',
   'src/libANGLE/renderer/vulkan/android/','src/libANGLE/renderer/vulkan/fuchsia/','src/libANGLE/renderer/vulkan/null/','src/libANGLE/renderer/vulkan/win32/',
   'src/libANGLE/renderer/vulkan/linux/display/','src/libANGLE/renderer/vulkan/linux/gbm/','src/libANGLE/renderer/vulkan/linux/headless/','src/libANGLE/renderer/vulkan/linux/healess/','src/libANGLE/renderer/vulkan/linux/wayland/','src/libANGLE/renderer/vulkan/linux/xcb/',
+ 'src/libANGLE/cl_utils.cpp',
+ 'src/libANGLE/CLBuffer.cpp',
+ 'src/libANGLE/CLCommandQueue.cpp',
+ 'src/CLContext.cpp',
+ 'src/libANGLE/CLDevice.cpp',
+ 'src/libANGLE/CLEvent.cpp',
+ 'src/libANGLE/CLKernel.cpp',
+ 'src/libANGLE/CLImage.cpp',
+ 'src/libANGLE/CLMemory.cpp',
+ 'src/libANGLE/CLObject.cpp',
+ 'src/libANGLE/CLPlatform.cpp',
+ 'src/libANGLE/CLSampler.cpp',
+ 'src/libANGLE/CLContext.cpp',
+ 'src/libANGLE/CLProgram.cpp',
+ 'src/libANGLE/EGLSync.cpp',
+ 'src/libANGLE/Context_gles_1_0.cpp',
+ 'src/libANGLE/es3_copy_conversion_table_autogen.cpp',
+ 'src/libANGLE/gles_extensions_autogen.cpp',
+ 'src/libANGLE/GLES1Renderer.cpp',
+ 'src/libANGLE/GLES1State.cpp',
+ 'src/libANGLE/validationCL.cpp',
+ 'src/libANGLE/validationEGL.cpp',
+ 'src/libANGLE/validationES31.cpp',
+ 'src/libANGLE/validationES32.cpp',
+ 'src/libANGLE/validationESEXT.cpp',
  'src/libANGLE/renderer/vulkan/CLCommandQueueVk.cpp',
   'src/libANGLE/renderer/vulkan/CLContextVk.cpp',
   'src/libANGLE/renderer/vulkan/CLDeviceVk.cpp',
@@ -327,6 +350,16 @@ const WL_DENY_SUBDIRS = [
   'angle/src/libANGLE/renderer/vulkan/CLProgramVk.cpp',
   'angle/src/libANGLE/renderer/vulkan/CLSamplerVk.cpp',
   'angle/src/libANGLE/renderer/vulkan/clspv_utils.cpp',
+  'src/libANGLE/renderer/CLCommandQueueImpl.cpp',
+  'src/libANGLE/renderer/CLContextImpl.cpp',
+  'src/libANGLE/renderer/CLDeviceImpl.cpp',
+  'src/libANGLE/renderer/CLEventImpl.cpp',
+  'src/libANGLE/renderer/CLExtensions.cpp',
+  'src/libANGLE/renderer/CLKernelImpl.cpp',
+  'src/libANGLE/renderer/CLMemoryImpl.cpp',
+  'src/libANGLE/renderer/CLPlatformImpl.cpp',
+  'src/libANGLE/renderer/CLProgramImpl.cpp',
+  'src/libANGLE/renderer/CLSamplerImpl.cpp',
   'angle/src/libANGLE/renderer/vulkan/android/','angle/src/libANGLE/renderer/vulkan/fuchsia/','angle/src/libANGLE/renderer/vulkan/null/','angle/src/libANGLE/renderer/vulkan/win32/',
   'angle/src/libANGLE/renderer/vulkan/linux/display/','angle/src/libANGLE/renderer/vulkan/linux/gbm/','angle/src/libANGLE/renderer/vulkan/linux/headless/','angle/src/libANGLE/renderer/vulkan/linux/healess/','angle/src/libANGLE/renderer/vulkan/linux/wayland/','angle/src/libANGLE/renderer/vulkan/linux/xcb/',
   'src/libANGLE/renderer/gl/cgl/','src/libANGLE/renderer/gl/egl/','src/libANGLE/renderer/gl/egl/android/','src/libANGLE/renderer/gl/glx/','src/libANGLE/renderer/gl/wgl/',
@@ -662,7 +695,6 @@ function addCheckedExtrasNotInWhitelist(){
   }
 }
 
-// ★ numeric key → 경로 기반 key로 마이그레이션
 function migrateIndexReviewsToPaths(){
   if(!DB.reviews) return;
   const keys = Object.keys(DB.reviews);
@@ -673,19 +705,17 @@ function migrateIndexReviewsToPaths(){
 
   const newReviews = {};
 
-  // 1) 비숫자 키(이미 경로 기반)는 그대로 보존
   for(const k of keys){
     if(!/^[0-9]+$/.test(k)){
       newReviews[k] = DB.reviews[k];
     }
   }
 
-  // 2) 숫자 키는 WL_FILES 인덱스로 매핑
   numericKeys.sort((a,b)=>parseInt(a,10)-parseInt(b,10));
   for(const k of numericKeys){
     const idx = parseInt(k, 10);
     if(idx < 0 || idx >= WL_FILES.length) continue;
-    const path = WL_FILES[idx];        // 화이트리스트에서 실제 경로
+    const path = WL_FILES[idx];   
     const nk = norm(path);
     const v = DB.reviews[k];
     const ts = (v && typeof v === 'object' && v.ts)
@@ -695,7 +725,7 @@ function migrateIndexReviewsToPaths(){
   }
 
   DB.reviews = newReviews;
-  saveDB(DB);   // 마이그레이션 결과를 localStorage + /state에 반영
+  saveDB(DB);   
 }
 
 async function loadWhitelistAndRender(){
@@ -717,7 +747,6 @@ async function loadWhitelistAndRender(){
     .map(e => norm(e.path || ''))
     .sort();
 
-  // numeric index → path 마이그레이션
   migrateIndexReviewsToPaths();
 
   addCheckedExtrasNotInWhitelist();

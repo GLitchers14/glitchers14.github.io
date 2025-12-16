@@ -681,11 +681,343 @@
     "src/libANGLE/renderer/vulkan/ImageVk.cpp": {
       "checked": true,
       "ts": "2025-11-24T10:19:06.671Z"
+    },
+    "src/libANGLE/renderer/vulkan/MemoryObjectVk.cpp": {
+      "checked": true,
+      "ts": "2025-11-25T06:07:19.532Z"
+    },
+    "src/libANGLE/renderer/vulkan/MemoryTracking.cpp": {
+      "checked": true,
+      "ts": "2025-11-25T06:28:21.420Z"
+    },
+    "src/libANGLE/renderer/vulkan/OverlayVk.cpp": {
+      "checked": true,
+      "ts": "2025-11-25T06:33:42.903Z"
+    },
+    "src/libANGLE/renderer/vulkan/PersistentCommandPool.cpp": {
+      "checked": true,
+      "ts": "2025-11-25T06:58:34.099Z"
+    },
+    "src/libANGLE/renderer/vulkan/ProgramPipelineVk.cpp": {
+      "checked": true,
+      "ts": "2025-11-25T08:17:01.135Z"
+    },
+    "src/libANGLE/renderer/vulkan/ProgramVk.cpp": {
+      "checked": true,
+      "ts": "2025-11-25T08:54:26.671Z"
+    },
+    "src/libANGLE/renderer/vulkan/SamplerVk.cpp": {
+      "checked": true,
+      "ts": "2025-11-26T07:24:02.358Z"
+    },
+    "src/libANGLE/renderer/vulkan/ShaderVk.cpp": {
+      "checked": true,
+      "ts": "2025-11-26T07:32:27.363Z"
+    },
+    "src/libANGLE/renderer/vulkan/Suballocation.cpp": {
+      "checked": true,
+      "ts": "2025-12-06T06:31:34.083Z"
+    },
+    "src/libANGLE/ImageIndex.cpp": {
+      "checked": true,
+      "ts": "2025-12-08T05:42:52.746Z"
+    },
+    "src/libANGLE/Renderbuffer.cpp": {
+      "checked": true,
+      "ts": "2025-12-08T06:57:12.458Z"
+    },
+    "src/libANGLE/BlobCache.cpp": {
+      "checked": true,
+      "ts": "2025-12-08T07:03:58.707Z"
+    },
+    "src/libANGLE/renderer/vulkan/RenderTargetVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-08T07:17:12.406Z"
+    },
+    "src/libANGLE/PixelLocalStorage.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T07:57:03.312Z"
+    },
+    "src/libANGLE/ProgramPipeline.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T07:57:11.880Z"
+    },
+    "src/libANGLE/Surface.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T07:57:20.672Z"
+    },
+    "src/libANGLE/renderer/d3d/SurfaceD3D.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T07:57:49.423Z"
+    },
+    "src/libANGLE/renderer/ImageImpl.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T07:58:20.943Z"
+    },
+    "src/libANGLE/renderer/vulkan/ContextVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:02:02.181Z"
+    },
+    "src/libANGLE/renderer/vulkan/FramebufferVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:02:04.200Z"
+    },
+    "src/libANGLE/renderer/vulkan/TransformFeedbackVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:02:11.008Z"
+    },
+    "src/libANGLE/renderer/vulkan/UtilsVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:02:11.431Z"
+    },
+    "src/libANGLE/renderer/renderer_utils.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:02:31.788Z"
+    },
+    "src/compiler/translator/spirv/TranslatorSPIRV.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:05:19.311Z"
+    },
+    "src/compiler/translator/spirv/OutputSPIRV.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:05:19.584Z"
+    },
+    "src/compiler/translator/ValidateTypeSizeLimitations.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:12:14.616Z"
+    },
+    "src/compiler/translator/ValidateOutputs.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T08:12:15.778Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/EmulateAdvancedBlendEquations.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:21.917Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/EmulateFragColorData.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:23.066Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/EmulateFramebufferFetch.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:23.578Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/EmulateYUVBuiltIns.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:25.056Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/FlagSamplersWithTexelFetch.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:26.402Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/RewriteInterpolateAtOffset.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:28.231Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/RewriteR32fImages.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:28.567Z"
+    },
+    "src/compiler/translator/tree_ops/spirv/RewriteSamplerExternalTexelFetch.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:28.863Z"
+    },
+    "src/compiler/translator/tree_ops/RewriteArrayOfArrayOfOpaqueUniforms.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:44.725Z"
+    },
+    "src/compiler/translator/tree_ops/RewriteDfdy.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:45.703Z"
+    },
+    "src/compiler/translator/tree_ops/RewritePixelLocalStorage.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:47.001Z"
+    },
+    "src/compiler/translator/tree_ops/RewriteStructSamplers.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:47.997Z"
+    },
+    "src/compiler/translator/tree_ops/RewriteTexelFetchOffset.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:48.745Z"
+    },
+    "src/compiler/translator/tree_ops/SimplifyLoopConditions.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:09:52.774Z"
+    },
+    "src/compiler/translator/tree_ops/GatherDefaultUniforms.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:10:00.379Z"
+    },
+    "src/compiler/translator/tree_ops/EmulateMultiDrawShaderBuiltins.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:10:01.270Z"
+    },
+    "src/compiler/translator/tree_ops/SeparateStructFromUniformDeclarations.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:10:16.228Z"
+    },
+    "src/compiler/translator/util.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:12:12.175Z"
+    },
+    "src/compiler/translator/hlsl/TranslatorHLSL.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:13:49.662Z"
+    },
+    "src/compiler/translator/spirv/BuildSPIRV.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T11:13:55.877Z"
+    },
+    "src/libANGLE/renderer/vulkan/VertexArrayVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T18:56:34.924Z"
+    },
+    "src/libANGLE/renderer/vulkan/spv_utils.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:03:15.359Z"
+    },
+    "src/compiler/translator/tree_ops/msl/AddExplicitTypeCasts.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:11.370Z"
+    },
+    "src/compiler/translator/tree_ops/msl/ConvertUnsupportedConstructorsToFunctionCalls.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:12.444Z"
+    },
+    "src/compiler/translator/tree_ops/msl/EnsureLoopForwardProgress.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:12.911Z"
+    },
+    "src/compiler/translator/tree_ops/msl/FixTypeConstructors.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:13.389Z"
+    },
+    "src/compiler/translator/tree_ops/msl/GuardFragDepthWrite.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:13.859Z"
+    },
+    "src/compiler/translator/tree_ops/msl/HoistConstants.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:14.469Z"
+    },
+    "src/compiler/translator/tree_ops/msl/IntroduceVertexIndexID.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:14.853Z"
+    },
+    "src/compiler/translator/tree_ops/msl/RewriteCaseDeclarations.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:15.419Z"
+    },
+    "src/compiler/translator/tree_ops/msl/RewriteInterpolants.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:17.119Z"
+    },
+    "src/compiler/translator/tree_ops/msl/RewriteOutArgs.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:17.469Z"
+    },
+    "src/compiler/translator/tree_ops/msl/RewriteUnaddressableReferences.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:17.936Z"
+    },
+    "src/compiler/translator/tree_ops/msl/SeparateCompoundExpressions.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:18.402Z"
+    },
+    "src/compiler/translator/tree_ops/msl/TransposeRowMajorMatrices.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:18.810Z"
+    },
+    "src/compiler/translator/tree_ops/msl/WrapMain.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:19.377Z"
+    },
+    "src/compiler/translator/msl/RewritePipelines.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:30.335Z"
+    },
+    "src/compiler/translator/msl/TranslatorMSL.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:34.329Z"
+    },
+    "src/compiler/translator/msl/EmitMetal.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:36.069Z"
+    },
+    "src/compiler/translator/msl/AstHelpers.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:39.050Z"
+    },
+    "src/compiler/translator/msl/ConstantNames.cpp": {
+      "checked": true,
+      "ts": "2025-12-15T19:19:39.852Z"
+    },
+    "src/libANGLE/renderer/metal/ProgramMtl.mm": {
+      "checked": true,
+      "ts": "2025-12-15T19:20:26.518Z"
+    },
+    "src/libANGLE/renderer/metal/QueryMtl.mm": {
+      "checked": true,
+      "ts": "2025-12-15T19:20:27.309Z"
+    },
+    "src/libANGLE/renderer/metal/SyncMtl.mm": {
+      "checked": true,
+      "ts": "2025-12-15T19:20:30.243Z"
+    },
+    "src/libANGLE/renderer/metal/TransformFeedbackMtl.mm": {
+      "checked": true,
+      "ts": "2025-12-15T19:20:34.409Z"
+    },
+    "src/libANGLE/Debug.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:28:28.084Z"
+    },
+    "src/libANGLE/Device.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:28:30.971Z"
+    },
+    "src/libANGLE/Display.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:28:31.986Z"
+    },
+    "src/libANGLE/Observer.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:28:36.730Z"
+    },
+    "src/libANGLE/Thread.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:28:47.919Z"
+    },
+    "src/libANGLE/renderer/vulkan/vk_helpers.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:29:04.397Z"
+    },
+    "src/libANGLE/renderer/vulkan/BufferVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:29:08.279Z"
+    },
+    "src/libANGLE/renderer/vulkan/ProgramExecutableVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:29:09.805Z"
+    },
+    "src/libANGLE/renderer/vulkan/TextureVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:29:13.698Z"
+    },
+    "src/libANGLE/renderer/vulkan/RenderbufferVk.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:29:24.565Z"
+    },
+    "src/libANGLE/renderer/vulkan/vk_renderer.cpp": {
+      "checked": true,
+      "ts": "2025-12-16T06:29:34.046Z"
     }
   },
   "manual": [],
   "meta": {
     "version": 7,
-    "updatedAt": 1764049768948
+    "updatedAt": 1765866574562
   }
 }
